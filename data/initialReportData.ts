@@ -1250,6 +1250,7 @@ const reportMap: { [key in VerificationType]?: { [key in VerificationOutcome]?: 
         [VerificationOutcome.Untraceable]: { key: 'untraceableDsaReport', data: initialUntraceableDsaReport },
     },
     [VerificationType.PropertyAPF]: {
+        [VerificationOutcome.PositiveAndDoorLocked]: { key: 'positivePropertyApfReport', data: initialPositivePropertyApfReport },
         [VerificationOutcome.NSPAndDoorLocked]: { key: 'nspPropertyApfReport', data: initialNspPropertyApfReport },
         [VerificationOutcome.ERT]: { key: 'entryRestrictedPropertyApfReport', data: initialEntryRestrictedPropertyApfReport },
         [VerificationOutcome.Untraceable]: { key: 'untraceablePropertyApfReport', data: initialUntraceablePropertyApfReport },

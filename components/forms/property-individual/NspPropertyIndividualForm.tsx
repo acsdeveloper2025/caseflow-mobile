@@ -42,12 +42,12 @@ const NspPropertyIndividualForm: React.FC<NspPropertyIndividualFormProps> = ({ c
         'addressLocatable', 'addressRating', 'buildingStatus', 'flatStatus', 'tpcMetPerson1', 'nameOfTpc1', 'tpcConfirmation1',
         'tpcMetPerson2', 'nameOfTpc2', 'tpcConfirmation2', 'locality', 'addressStructure', 'addressStructureColor', 'doorColor',
         'doorNamePlateStatus', 'societyNamePlateStatus', 'landmark1', 'landmark2', 'politicalConnection', 'dominatedArea',
-        'feedbackFromNeighbour', 'otherObservation', 'finalStatus'
+        'feedbackFromNeighbour', 'otherObservation', 'finalStatus', 'propertyOwnerName'
     ];
     if (!checkFields(baseFields)) return false;
 
     if (report.flatStatus === FlatStatusApf.Opened) {
-        const openedFields: (keyof NspPropertyIndividualReportData)[] = ['metPerson', 'relationship', 'propertyOwnerName'];
+        const openedFields: (keyof NspPropertyIndividualReportData)[] = ['metPerson', 'relationship'];
         if (!checkFields(openedFields)) return false;
     }
 
@@ -125,14 +125,22 @@ const NspPropertyIndividualForm: React.FC<NspPropertyIndividualFormProps> = ({ c
             <SelectField label="Flat Status" id="flatStatus" name="flatStatus" value={report.flatStatus || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.flatStatus}</SelectField>
         </div>
 
-        {report.flatStatus === FlatStatusApf.Opened && (
-            <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
-            <h5 className="font-semibold text-brand-primary">Met Person Details (Flat Open)</h5>
+        {/* Property Owner Name - Always visible regardless of flat status */}
+        <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+            <h4 className="font-semibold text-brand-primary">Property Details</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField label="Met Person" id="metPerson" name="metPerson" value={report.metPerson} onChange={handleChange} disabled={isReadOnly} />
-                <FormField label="Relationship" id="relationship" name="relationship" value={report.relationship} onChange={handleChange} disabled={isReadOnly} />
                 <FormField label="Property Owner Name" id="propertyOwnerName" name="propertyOwnerName" value={report.propertyOwnerName} onChange={handleChange} disabled={isReadOnly} />
             </div>
+        </div>
+
+        {/* Met Person Details Section - Conditional for flat open */}
+        {report.flatStatus === FlatStatusApf.Opened && (
+            <div className="p-4 bg-yellow-900/20 rounded-lg space-y-4 border border-yellow-600/30">
+                <h4 className="font-semibold text-yellow-400">Additional Details (Flat Open)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField label="Met Person" id="metPerson" name="metPerson" value={report.metPerson} onChange={handleChange} disabled={isReadOnly} />
+                    <FormField label="Relationship" id="relationship" name="relationship" value={report.relationship} onChange={handleChange} disabled={isReadOnly} />
+                </div>
             </div>
         )}
 

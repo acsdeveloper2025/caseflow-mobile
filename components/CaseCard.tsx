@@ -41,8 +41,7 @@ import ShiftedDsaForm from './forms/dsa-dst-connector/ShiftedDsaForm';
 import NspDsaForm from './forms/dsa-dst-connector/NspDsaForm';
 import EntryRestrictedDsaForm from './forms/dsa-dst-connector/EntryRestrictedDsaForm';
 import UntraceableDsaForm from './forms/dsa-dst-connector/UntraceableDsaForm';
-import PositivePropertyApfForm from './forms/property-apf/PositivePropertyApfForm';
-import NspPropertyApfForm from './forms/property-apf/NspPropertyApfForm';
+import PositiveNegativePropertyApfForm from './forms/property-apf/PositiveNegativePropertyApfForm';
 import EntryRestrictedPropertyApfForm from './forms/property-apf/EntryRestrictedPropertyApfForm';
 import UntraceablePropertyApfForm from './forms/property-apf/UntraceablePropertyApfForm';
 import PositivePropertyIndividualForm from './forms/property-individual/PositivePropertyIndividualForm';
@@ -79,7 +78,7 @@ const verificationOptionsMap: { [key in VerificationType]?: React.ReactElement[]
     [VerificationType.NOC]: getEnumOptions(commonOutcomes),
     [VerificationType.Connector]: getEnumOptions(commonOutcomes),
     [VerificationType.PropertyAPF]: getEnumOptions({
-        NSPAndDoorLocked: VerificationOutcome.NSPAndDoorLocked,
+        PositiveAndDoorLocked: VerificationOutcome.PositiveAndDoorLocked,
         ERT: VerificationOutcome.ERT,
         Untraceable: VerificationOutcome.Untraceable,
     }),
@@ -340,9 +339,11 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
 
     if (caseData.verificationType === VerificationType.PropertyAPF) {
         switch (caseData.verificationOutcome) {
-            // Note: PropertyAPF no longer has Positive outcome, only NSP, ERT, and Untraceable
+            case VerificationOutcome.PositiveAndDoorLocked:
             case VerificationOutcome.NSPAndDoorLocked:
-                return caseData.nspPropertyApfReport ? <NspPropertyApfForm caseData={caseData} /> : <p>Loading NSP Property (APF) Form...</p>;
+                return (caseData.positivePropertyApfReport || caseData.nspPropertyApfReport) ?
+                    <PositiveNegativePropertyApfForm caseData={caseData} /> :
+                    <p>Loading Property APF Form...</p>;
             case VerificationOutcome.ERT:
                 return caseData.entryRestrictedPropertyApfReport ? <EntryRestrictedPropertyApfForm caseData={caseData} /> : <p>Loading ERT Property (APF) Form...</p>;
             case VerificationOutcome.Untraceable:

@@ -42,12 +42,12 @@ const PositivePropertyIndividualForm: React.FC<PositivePropertyIndividualFormPro
         'addressLocatable', 'addressRating', 'buildingStatus', 'flatStatus', 'tpcMetPerson1', 'nameOfTpc1', 'tpcConfirmation1',
         'tpcMetPerson2', 'nameOfTpc2', 'tpcConfirmation2', 'locality', 'addressStructure', 'addressExistAt', 'addressStructureColor',
         'doorColor', 'doorNamePlateStatus', 'societyNamePlateStatus', 'landmark1', 'landmark2', 'politicalConnection',
-        'dominatedArea', 'feedbackFromNeighbour', 'otherObservation', 'finalStatus'
+        'dominatedArea', 'feedbackFromNeighbour', 'otherObservation', 'finalStatus', 'propertyOwnerName'
     ];
     if (!checkFields(baseFields)) return false;
 
     if (report.flatStatus === FlatStatusApf.Opened) {
-        const openedFields: (keyof PositivePropertyIndividualReportData)[] = ['metPerson', 'relationship', 'propertyOwnerName', 'approxArea'];
+        const openedFields: (keyof PositivePropertyIndividualReportData)[] = ['metPerson', 'relationship', 'approxArea'];
         if (!checkFields(openedFields)) return false;
     }
 
@@ -167,17 +167,24 @@ const PositivePropertyIndividualForm: React.FC<PositivePropertyIndividualFormPro
         </div>
       </div>
 
-      {/* Property Verification Details Section - Conditional */}
+      {/* Property Owner Name - Always visible regardless of flat status */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Property Details</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField label="Property Owner Name" id="propertyOwnerName" name="propertyOwnerName" value={report.propertyOwnerName} onChange={handleChange} disabled={isReadOnly} />
+        </div>
+      </div>
+
+      {/* Property Verification Details Section - Conditional for flat open */}
       {report.flatStatus === FlatStatusApf.Opened && (
         <div className="p-4 bg-yellow-900/20 rounded-lg space-y-4 border border-yellow-600/30">
-          <h4 className="font-semibold text-yellow-400">Property Verification Details (Flat Open)</h4>
+          <h4 className="font-semibold text-yellow-400">Additional Details (Flat Open)</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="Met Person" id="metPerson" name="metPerson" value={report.metPerson} onChange={handleChange} disabled={isReadOnly} />
             <SelectField label="Relationship" id="relationship" name="relationship" value={report.relationship || ''} onChange={handleChange} disabled={isReadOnly}>
               <option value="">Select...</option>
               {options.relationship}
             </SelectField>
-            <FormField label="Property Owner Name" id="propertyOwnerName" name="propertyOwnerName" value={report.propertyOwnerName} onChange={handleChange} disabled={isReadOnly} />
             <FormField label="Approx Area (Sq. Feet)" id="approxArea" name="approxArea" value={report.approxArea || ''} onChange={handleChange} type="number" disabled={isReadOnly} />
           </div>
         </div>
@@ -231,14 +238,14 @@ const PositivePropertyIndividualForm: React.FC<PositivePropertyIndividualFormPro
             {options.sightStatus}
           </SelectField>
           {report.doorNamePlateStatus === SightStatus.Sighted && (
-            <FormField label="Name on Door Plate" id="nameOnDoorPlate" name="nameOnDoorPlate" value={report.nameOnDoorPlate} onChange={handleChange} disabled={isReadOnly} className="border-red-500" />
+            <FormField label="Name on Door Plate" id="nameOnDoorPlate" name="nameOnDoorPlate" value={report.nameOnDoorPlate} onChange={handleChange} disabled={isReadOnly} />
           )}
           <SelectField label="Society Name Plate" id="societyNamePlateStatus" name="societyNamePlateStatus" value={report.societyNamePlateStatus || ''} onChange={handleChange} disabled={isReadOnly}>
             <option value="">Select...</option>
             {options.sightStatus}
           </SelectField>
           {report.societyNamePlateStatus === SightStatus.Sighted && (
-            <FormField label="Name on Society Board" id="nameOnSocietyBoard" name="nameOnSocietyBoard" value={report.nameOnSocietyBoard} onChange={handleChange} disabled={isReadOnly} className="border-red-500" />
+            <FormField label="Name on Society Board" id="nameOnSocietyBoard" name="nameOnSocietyBoard" value={report.nameOnSocietyBoard} onChange={handleChange} disabled={isReadOnly} />
           )}
         </div>
       </div>
