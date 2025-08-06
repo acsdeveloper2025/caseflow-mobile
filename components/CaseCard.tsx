@@ -6,7 +6,7 @@ import { SparklesIcon, ChevronDownIcon, ChevronUpIcon, CheckIcon, XIcon, InfoIco
 import Spinner from './Spinner';
 import Modal from './Modal';
 import { useCaseAutoSaveStatus } from '../hooks/useCaseAutoSaveStatus';
-import ResidenceForm from './forms/residence/ResidenceFormSimple';
+import PositiveResidenceForm from './forms/residence/PositiveResidenceForm';
 import ShiftedResidenceForm from './forms/residence/ShiftedResidenceForm';
 import NspResidenceForm from './forms/residence/NspResidenceForm';
 import EntryRestrictedResidenceForm from './forms/residence/EntryRestrictedResidenceForm';
@@ -222,7 +222,7 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
     if (caseData.verificationType === VerificationType.Residence) {
       switch (caseData.verificationOutcome) {
         case VerificationOutcome.PositiveAndDoorLocked:
-          return caseData.residenceReport ? <ResidenceForm caseData={caseData} /> : <p>Loading Residence Form...</p>;
+          return caseData.residenceReport ? <PositiveResidenceForm caseData={caseData} /> : <p>Loading Residence Form...</p>;
         case VerificationOutcome.ShiftedAndDoorLocked:
           return caseData.shiftedResidenceReport ? <ShiftedResidenceForm caseData={caseData} /> : <p>Loading Shifted Residence Form...</p>;
         case VerificationOutcome.NSPAndDoorLocked:

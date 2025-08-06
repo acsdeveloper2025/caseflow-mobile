@@ -1,15 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Case, ShiftedResidenceReportData, AddressLocatable, AddressRating, RoomStatusShifted, MetPersonStatusShifted,
-  TPCMetPerson, PremisesStatus, LocalityType, SightStatus, PoliticalConnection, DominatedArea,
-  FeedbackFromNeighbour, FinalStatusShifted, CaseStatus, CapturedImage
+  Case, ResidenceReportData, AddressLocatable, AddressRating, HouseStatus, Relation,
+  WorkingStatus, StayingStatus, DocumentShownStatus, DocumentType, TPCMetPerson, TPCConfirmation,
+  LocalityType, SightStatus, PoliticalConnection, DominatedArea, FeedbackFromNeighbour,
+  FinalStatus, CaseStatus, CapturedImage
 } from '../../../types';
 import { useCases } from '../../../context/CaseContext';
 import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 
-interface ShiftedResidenceFormProps {
+interface PositiveResidenceFormProps {
   caseData: Case;
 }
 
@@ -17,66 +18,89 @@ const getEnumOptions = (enumObject: object) => Object.values(enumObject).map(val
   <option key={value} value={value}>{value}</option>
 ));
 
-const ShiftedResidenceForm: React.FC<ShiftedResidenceFormProps> = ({ caseData }) => {
-  const { updateShiftedResidenceReport, updateCaseStatus, toggleSaveCase } = useCases();
+const PositiveResidenceForm: React.FC<PositiveResidenceFormProps> = ({ caseData }) => {
+  const { updateResidenceReport, updateCaseStatus, toggleSaveCase } = useCases();
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const report = caseData.shiftedResidenceReport;
+  const report = caseData.residenceReport;
   const isReadOnly = caseData.status === CaseStatus.Completed || caseData.isSaved;
   const MIN_IMAGES = 5;
 
   if (!report) {
-    return <p className="text-medium-text">No shifted residence report data available for this case.</p>;
+    return <p className="text-medium-text">No residence report data available for this case.</p>;
   }
-  
+
+  // Calculate age based on DOB
+  const calculateAge = (dob: string) => {
+    if (!dob) return null;
+    const today = new Date();
+    const birthDate = new Date(dob);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   const isFormValid = useMemo(() => {
     if (!report) return false;
     
     if (report.images.length < MIN_IMAGES) return false;
 
-    const checkFields = (fields: (keyof ShiftedResidenceReportData)[]) => fields.every(field => {
+    const checkFields = (fields: (keyof ResidenceReportData)[]) => fields.every(field => {
         const value = report[field];
         return value !== null && value !== undefined && value !== '';
     });
 
-    const baseFields: (keyof ShiftedResidenceReportData)[] = [
-        'addressLocatable', 'addressRating', 'roomStatus',
-        'locality', 'addressStructure', 'addressFloor', 'addressStructureColor', 'doorColor',
+    const baseFields: (keyof ResidenceReportData)[] = [
+        'addressLocatable', 'addressRating', 'houseStatus',
+        'locality', 'addressStructure', 'applicantStayingFloor', 'addressStructureColor', 'doorColor',
         'doorNamePlateStatus', 'societyNamePlateStatus', 'landmark1', 'landmark2',
         'politicalConnection', 'dominatedArea', 'feedbackFromNeighbour', 'otherObservation', 'finalStatus',
-        'shiftedPeriod' // Always required field
+        'stayingPeriod', 'stayingStatus' // Always required fields
     ];
 
     if (!checkFields(baseFields)) return false;
 
-    // Always required TPC validations (regardless of room status)
+    // Always required TPC validations (regardless of house status)
     if (report.tpcMetPerson1) {
-        if (!report.tpcName1 || report.tpcName1.trim() === '') return false;
+        if (!report.tpcName1 || report.tpcName1.trim() === '' || !report.tpcConfirmation1) return false;
     }
     if (report.tpcMetPerson2) {
-        if (!report.tpcName2 || report.tpcName2.trim() === '') return false;
+        if (!report.tpcName2 || report.tpcName2.trim() === '' || !report.tpcConfirmation2) return false;
     }
 
-    // Conditional validation based on room status
-    if (report.roomStatus === RoomStatusShifted.Opened) {
-        const openedFields: (keyof ShiftedResidenceReportData)[] = [
-            'metPersonName', 'metPersonStatus'
+    // Conditional validation based on house status
+    if (report.houseStatus === HouseStatus.Opened) {
+        const openedFields: (keyof ResidenceReportData)[] = [
+            'metPersonName', 'metPersonRelation', 'totalFamilyMembers', 'totalEarning',
+            'applicantDob', 'approxArea', 'documentShownStatus'
         ];
         if (!checkFields(openedFields)) return false;
+
+        // Working status validation
+        if (report.workingStatus && report.workingStatus !== 'House Wife') {
+            if (!report.companyName || report.companyName.trim() === '') return false;
+        }
+
+        // Document type validation
+        if (report.documentShownStatus === DocumentShownStatus.Showed) {
+            if (!report.documentType) return false;
+        }
     }
 
-    if (report.roomStatus === RoomStatusShifted.Closed) {
-        if (!report.premisesStatus) return false;
-    }
-    
+    // Door plate name validation
     if (report.doorNamePlateStatus === SightStatus.Sighted) {
         if (!report.nameOnDoorPlate || report.nameOnDoorPlate.trim() === '') return false;
     }
 
+    // Society board name validation
     if (report.societyNamePlateStatus === SightStatus.Sighted) {
         if (!report.nameOnSocietyBoard || report.nameOnSocietyBoard.trim() === '') return false;
     }
 
-    if (report.finalStatus === FinalStatusShifted.Hold) {
+    // Hold reason validation
+    if (report.finalStatus === FinalStatus.Hold) {
         if (!report.holdReason || report.holdReason.trim() === '') return false;
     }
 
@@ -85,39 +109,55 @@ const ShiftedResidenceForm: React.FC<ShiftedResidenceFormProps> = ({ caseData })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    let processedValue: string | null = value;
+    let processedValue: string | number | null = value;
     
     if (e.target.tagName === 'SELECT' && value === '') {
         processedValue = null;
     }
 
-    const updates: Partial<ShiftedResidenceReportData> = { [name]: processedValue };
-    updateShiftedResidenceReport(caseData.id, updates);
-  };
+    // Handle number fields
+    if (['totalFamilyMembers', 'totalEarning', 'applicantAge', 'approxArea'].includes(name)) {
+        processedValue = value === '' ? null : Number(value);
+    }
 
+    const updates: Partial<ResidenceReportData> = { [name]: processedValue };
+
+    // Auto-calculate age when DOB changes
+    if (name === 'applicantDob' && value) {
+        const age = calculateAge(value);
+        updates.applicantAge = age;
+    }
+
+    updateResidenceReport(caseData.id, updates);
+  };
+  
   const handleImagesChange = (images: CapturedImage[]) => {
-    updateShiftedResidenceReport(caseData.id, { images });
+    updateResidenceReport(caseData.id, { images });
   };
 
   const options = useMemo(() => ({
     addressLocatable: getEnumOptions(AddressLocatable),
     addressRating: getEnumOptions(AddressRating),
-    roomStatus: getEnumOptions(RoomStatusShifted),
-    metPersonStatus: getEnumOptions(MetPersonStatusShifted),
+    houseStatus: getEnumOptions(HouseStatus),
+    relation: getEnumOptions(Relation),
+    workingStatus: getEnumOptions(WorkingStatus),
+    stayingStatus: getEnumOptions(StayingStatus),
+    documentShownStatus: getEnumOptions(DocumentShownStatus),
+    documentType: getEnumOptions(DocumentType),
     tpcMetPerson: getEnumOptions(TPCMetPerson),
-    premisesStatus: getEnumOptions(PremisesStatus),
+    tpcConfirmation: getEnumOptions(TPCConfirmation),
     localityType: getEnumOptions(LocalityType),
     sightStatus: getEnumOptions(SightStatus),
     politicalConnection: getEnumOptions(PoliticalConnection),
     dominatedArea: getEnumOptions(DominatedArea),
     feedbackFromNeighbour: getEnumOptions(FeedbackFromNeighbour),
-    finalStatus: getEnumOptions(FinalStatusShifted),
+    finalStatus: getEnumOptions(FinalStatus),
   }), []);
 
   return (
     <div className="space-y-4 pt-4 border-t border-dark-border">
-      <h3 className="text-lg font-semibold text-brand-primary">Shifted Residence Report</h3>
-
+      <h3 className="text-lg font-semibold text-brand-primary">Positive Residence Report</h3>
+      
       {/* Customer Information Section */}
       <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
         <h4 className="font-semibold text-brand-primary">Customer Information</h4>
@@ -171,35 +211,52 @@ const ShiftedResidenceForm: React.FC<ShiftedResidenceFormProps> = ({ caseData })
             <option value="">Select...</option>
             {options.addressRating}
           </SelectField>
-          <SelectField label="Room Status" id="roomStatus" name="roomStatus" value={report.roomStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+          <SelectField label="House Status" id="houseStatus" name="houseStatus" value={report.houseStatus || ''} onChange={handleChange} disabled={isReadOnly}>
             <option value="">Select...</option>
-            {options.roomStatus}
+            {options.houseStatus}
           </SelectField>
         </div>
       </div>
 
-      {/* Personal Details Section - Only show if room is opened */}
-      {report.roomStatus === RoomStatusShifted.Opened && (
+      {/* Personal Details Section - Only show if house is opened */}
+      {report.houseStatus === HouseStatus.Opened && (
         <div className="p-4 bg-yellow-900/20 rounded-lg space-y-4 border border-yellow-600/30">
-          <h4 className="font-semibold text-yellow-400">Confirmation Details (Room Opened)</h4>
+          <h4 className="font-semibold text-yellow-400">Personal Details (House Opened)</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Met Person" id="metPersonName" name="metPersonName" value={report.metPersonName} onChange={handleChange} disabled={isReadOnly} />
-            <SelectField label="Met Person Status" id="metPersonStatus" name="metPersonStatus" value={report.metPersonStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+            <FormField label="Met Person Name" id="metPersonName" name="metPersonName" value={report.metPersonName} onChange={handleChange} disabled={isReadOnly} />
+            <SelectField label="Relation" id="metPersonRelation" name="metPersonRelation" value={report.metPersonRelation || ''} onChange={handleChange} disabled={isReadOnly}>
               <option value="">Select...</option>
-              {options.metPersonStatus}
+              {options.relation}
             </SelectField>
+            <FormField label="Total Family Members" id="totalFamilyMembers" name="totalFamilyMembers" type="number" value={report.totalFamilyMembers || ''} onChange={handleChange} disabled={isReadOnly} />
+            <FormField label="Total Earning (₹)" id="totalEarning" name="totalEarning" type="number" value={report.totalEarning || ''} onChange={handleChange} disabled={isReadOnly} />
+            <FormField label="Applicant DOB" id="applicantDob" name="applicantDob" type="date" value={report.applicantDob} onChange={handleChange} disabled={isReadOnly} />
+            <FormField label="Applicant Age" id="applicantAge" name="applicantAge" type="number" value={report.applicantAge || ''} onChange={handleChange} disabled={true} />
+            <SelectField label="Working Status" id="workingStatus" name="workingStatus" value={report.workingStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+              <option value="">Select...</option>
+              {options.workingStatus}
+            </SelectField>
+            {report.workingStatus && report.workingStatus !== 'House Wife' && (
+              <FormField label="Company Name" id="companyName" name="companyName" value={report.companyName} onChange={handleChange} disabled={isReadOnly} />
+            )}
           </div>
-        </div>
-      )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Approx Area (Sq. Feet)" id="approxArea" name="approxArea" type="number" value={report.approxArea || ''} onChange={handleChange} disabled={isReadOnly} />
+          </div>
 
-      {/* Premises Details Section - Only show if room is closed */}
-      {report.roomStatus === RoomStatusShifted.Closed && (
-        <div className="p-4 bg-yellow-900/20 rounded-lg space-y-4 border border-yellow-600/30">
-          <h4 className="font-semibold text-yellow-400">Premises Details (Room Closed)</h4>
-          <SelectField label="Premises Status" id="premisesStatus" name="premisesStatus" value={report.premisesStatus || ''} onChange={handleChange} disabled={isReadOnly}>
-            <option value="">Select...</option>
-            {options.premisesStatus}
-          </SelectField>
+          {/* Document Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SelectField label="Document Shown Status" id="documentShownStatus" name="documentShownStatus" value={report.documentShownStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+              <option value="">Select...</option>
+              {options.documentShownStatus}
+            </SelectField>
+            {report.documentShownStatus === DocumentShownStatus.Showed && (
+              <SelectField label="Document Type" id="documentType" name="documentType" value={report.documentType || ''} onChange={handleChange} disabled={isReadOnly}>
+                <option value="">Select...</option>
+                {options.documentType}
+              </SelectField>
+            )}
+          </div>
         </div>
       )}
 
@@ -207,25 +264,39 @@ const ShiftedResidenceForm: React.FC<ShiftedResidenceFormProps> = ({ caseData })
       <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
         <h4 className="font-semibold text-brand-primary">Additional Details</h4>
 
-        {/* Shifted Period */}
-        <FormField label="Shifted Period" id="shiftedPeriod" name="shiftedPeriod" value={report.shiftedPeriod} onChange={handleChange} placeholder="e.g., 6 months ago" disabled={isReadOnly} />
+        {/* Staying Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField label="Staying Period" id="stayingPeriod" name="stayingPeriod" value={report.stayingPeriod} onChange={handleChange} placeholder="e.g., 5 years" disabled={isReadOnly} />
+          <SelectField label="Staying Status" id="stayingStatus" name="stayingStatus" value={report.stayingStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.stayingStatus}
+          </SelectField>
+        </div>
 
         {/* Third Party Confirmation Section */}
         <div className="space-y-4">
           <h5 className="font-semibold text-brand-primary">Third Party Confirmation</h5>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <SelectField label="TPC Met Person 1" id="tpcMetPerson1" name="tpcMetPerson1" value={report.tpcMetPerson1 || ''} onChange={handleChange} disabled={isReadOnly}>
               <option value="">Select...</option>
               {options.tpcMetPerson}
             </SelectField>
             <FormField label="Name of TPC 1" id="tpcName1" name="tpcName1" value={report.tpcName1} onChange={handleChange} disabled={isReadOnly} />
+            <SelectField label="TPC Confirmation 1" id="tpcConfirmation1" name="tpcConfirmation1" value={report.tpcConfirmation1 || ''} onChange={handleChange} disabled={isReadOnly}>
+              <option value="">Select...</option>
+              {options.tpcConfirmation}
+            </SelectField>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <SelectField label="TPC Met Person 2" id="tpcMetPerson2" name="tpcMetPerson2" value={report.tpcMetPerson2 || ''} onChange={handleChange} disabled={isReadOnly}>
               <option value="">Select...</option>
               {options.tpcMetPerson}
             </SelectField>
             <FormField label="Name of TPC 2" id="tpcName2" name="tpcName2" value={report.tpcName2} onChange={handleChange} disabled={isReadOnly} />
+            <SelectField label="TPC Confirmation 2" id="tpcConfirmation2" name="tpcConfirmation2" value={report.tpcConfirmation2 || ''} onChange={handleChange} disabled={isReadOnly}>
+              <option value="">Select...</option>
+              {options.tpcConfirmation}
+            </SelectField>
           </div>
         </div>
       </div>
@@ -239,7 +310,7 @@ const ShiftedResidenceForm: React.FC<ShiftedResidenceFormProps> = ({ caseData })
             {options.localityType}
           </SelectField>
           <FormField label="Address Structure" id="addressStructure" name="addressStructure" value={report.addressStructure} onChange={handleChange} placeholder="e.g., G+7" disabled={isReadOnly} />
-          <FormField label="Address Floor" id="addressFloor" name="addressFloor" value={report.addressFloor} onChange={handleChange} placeholder="e.g., 4" disabled={isReadOnly} />
+          <FormField label="Applicant Staying Floor" id="applicantStayingFloor" name="applicantStayingFloor" value={report.applicantStayingFloor} onChange={handleChange} placeholder="e.g., 4" disabled={isReadOnly} />
           <FormField label="Address Structure Color" id="addressStructureColor" name="addressStructureColor" value={report.addressStructureColor} onChange={handleChange} disabled={isReadOnly} />
           <FormField label="Door Color" id="doorColor" name="doorColor" value={report.doorColor} onChange={handleChange} disabled={isReadOnly} />
         </div>
@@ -274,7 +345,7 @@ const ShiftedResidenceForm: React.FC<ShiftedResidenceFormProps> = ({ caseData })
       {/* Area Assessment Section */}
       <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
         <h4 className="font-semibold text-brand-primary">Area Assessment</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <SelectField label="Political Connection" id="politicalConnection" name="politicalConnection" value={report.politicalConnection || ''} onChange={handleChange} disabled={isReadOnly}>
             <option value="">Select...</option>
             {options.politicalConnection}
@@ -298,29 +369,31 @@ const ShiftedResidenceForm: React.FC<ShiftedResidenceFormProps> = ({ caseData })
           <option value="">Select...</option>
           {options.finalStatus}
         </SelectField>
-        {report.finalStatus === FinalStatusShifted.Hold && (
+        {report.finalStatus === FinalStatus.Hold && (
           <FormField label="Reason for Hold" id="holdReason" name="holdReason" value={report.holdReason} onChange={handleChange} disabled={isReadOnly} />
         )}
       </div>
 
-       <ImageCapture
+      {/* Image Capture Section */}
+      <ImageCapture
         images={report.images}
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
       />
 
+      {/* Submit Section */}
       {!isReadOnly && caseData.status === CaseStatus.InProgress && (
           <>
             <div className="mt-6">
-                <button 
+                <button
                     onClick={() => setIsConfirmModalOpen(true)}
                     disabled={!isFormValid}
                     className="w-full px-6 py-3 text-sm font-semibold rounded-md bg-brand-primary hover:bg-brand-secondary text-white transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed"
                 >
                     Submit
                 </button>
-                 {!isFormValid && <p className="text-xs text-red-400 text-center mt-2">Please fill all fields and capture at least {MIN_IMAGES} photos to submit.</p>}
+                 {!isFormValid && <p className="text-xs text-red-400 text-center mt-2">Please fill all required fields and capture at least {MIN_IMAGES} photos to submit.</p>}
             </div>
             <ConfirmationModal
                 isOpen={isConfirmModalOpen}
@@ -347,4 +420,4 @@ const ShiftedResidenceForm: React.FC<ShiftedResidenceFormProps> = ({ caseData })
   );
 };
 
-export default ShiftedResidenceForm;
+export default PositiveResidenceForm;

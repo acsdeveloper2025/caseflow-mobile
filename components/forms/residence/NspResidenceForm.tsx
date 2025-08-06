@@ -47,9 +47,18 @@ const NspResidenceForm: React.FC<NspResidenceFormProps> = ({ caseData }) => {
 
     if (!checkFields(baseFields)) return false;
 
+    // Always available TPC validations (regardless of house status)
+    if (report.tpcMetPerson1) {
+        if (!report.tpcName1 || report.tpcName1.trim() === '') return false;
+    }
+    if (report.tpcMetPerson2) {
+        if (!report.tpcName2 || report.tpcName2.trim() === '') return false;
+    }
+
+    // Conditional validation based on house status
     if (report.houseStatus === HouseStatus.Opened) {
         const openedFields: (keyof NspResidenceReportData)[] = [
-            'metPersonName', 'metPersonStatus', 'stayingPeriod', 'tpcMetPerson1', 'tpcName1', 'tpcMetPerson2', 'tpcName2'
+            'metPersonName', 'metPersonStatus', 'stayingPeriod'
         ];
         if (!checkFields(openedFields)) return false;
     }
@@ -105,81 +114,182 @@ const NspResidenceForm: React.FC<NspResidenceFormProps> = ({ caseData }) => {
 
   return (
     <div className="space-y-4 pt-4 border-t border-dark-border">
-      
-      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border mb-4">
-        <h5 className="font-semibold text-brand-primary">Case Details</h5>
+      <h3 className="text-lg font-semibold text-brand-primary">NSP Residence Report</h3>
+
+      {/* Customer Information Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Customer Information</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Customer Name" id="case-customerName" name="case-customerName" value={caseData.customer.name} onChange={() => {}} disabled />
-            <FormField label="Bank Name" id="case-bankName" name="case-bankName" value={caseData.bankName || ''} onChange={() => {}} disabled />
-            <FormField label="Product" id="case-product" name="case-product" value={caseData.product || ''} onChange={() => {}} disabled />
-            <FormField label="Trigger" id="case-trigger" name="case-trigger" value={caseData.trigger || ''} onChange={() => {}} disabled />
-            <div className="md:col-span-2">
-              <FormField label="Visit Address" id="case-visitAddress" name="case-visitAddress" value={caseData.visitAddress || ''} onChange={() => {}} disabled />
-            </div>
-            <FormField label="System Contact Number" id="case-systemContactNumber" name="case-systemContactNumber" value={caseData.systemContactNumber || ''} onChange={() => {}} disabled />
-            <FormField label="Customer Calling Code" id="case-customerCallingCode" name="case-customerCallingCode" value={caseData.customerCallingCode || ''} onChange={() => {}} disabled />
-            <FormField label="Applicant Status" id="case-applicantStatus" name="case-applicantStatus" value={caseData.applicantStatus || ''} onChange={() => {}} disabled />
+          <div className="text-sm">
+            <span className="text-medium-text">Customer Name: </span>
+            <span className="text-light-text">{caseData.customer.name}</span>
+          </div>
+          <div className="text-sm">
+            <span className="text-medium-text">Bank Name: </span>
+            <span className="text-light-text">{caseData.bankName || 'N/A'}</span>
+          </div>
+          <div className="text-sm">
+            <span className="text-medium-text">Product: </span>
+            <span className="text-light-text">{caseData.product || 'N/A'}</span>
+          </div>
+          <div className="text-sm">
+            <span className="text-medium-text">Trigger: </span>
+            <span className="text-light-text">{caseData.trigger || 'N/A'}</span>
+          </div>
+        </div>
+        <div className="text-sm">
+          <span className="text-medium-text">Visit Address: </span>
+          <span className="text-light-text">{caseData.visitAddress || 'N/A'}</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="text-sm">
+            <span className="text-medium-text">System Contact: </span>
+            <span className="text-light-text">{caseData.systemContactNumber || 'N/A'}</span>
+          </div>
+          <div className="text-sm">
+            <span className="text-medium-text">Customer Code: </span>
+            <span className="text-light-text">{caseData.customerCallingCode || 'N/A'}</span>
+          </div>
+          <div className="text-sm">
+            <span className="text-medium-text">Applicant Status: </span>
+            <span className="text-light-text">{caseData.applicantStatus || 'N/A'}</span>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SelectField label="Address Locatable" id="addressLocatable" name="addressLocatable" value={report.addressLocatable || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.addressLocatable}</SelectField>
-        <SelectField label="Address Rating" id="addressRating" name="addressRating" value={report.addressRating || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.addressRating}</SelectField>
-        <SelectField label="House Status" id="houseStatus" name="houseStatus" value={report.houseStatus || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.houseStatus}</SelectField>
+      {/* Address Verification Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Address Verification</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <SelectField label="Address Locatable" id="addressLocatable" name="addressLocatable" value={report.addressLocatable || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.addressLocatable}
+          </SelectField>
+          <SelectField label="Address Rating" id="addressRating" name="addressRating" value={report.addressRating || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.addressRating}
+          </SelectField>
+          <SelectField label="House Status" id="houseStatus" name="houseStatus" value={report.houseStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.houseStatus}
+          </SelectField>
+        </div>
       </div>
 
+      {/* Personal Details Section - Only show if house is opened */}
       {report.houseStatus === HouseStatus.Opened && (
-        <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
-            <h5 className="font-semibold text-brand-primary">Confirmation Details (House Opened)</h5>
+        <div className="p-4 bg-yellow-900/20 rounded-lg space-y-4 border border-yellow-600/30">
+          <h4 className="font-semibold text-yellow-400">Confirmation Details (House Opened)</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField label="Met Person" id="metPersonName" name="metPersonName" value={report.metPersonName} onChange={handleChange} disabled={isReadOnly} />
-            <SelectField label="Met Person Status" id="metPersonStatus" name="metPersonStatus" value={report.metPersonStatus || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.metPersonStatus}</SelectField>
+            <SelectField label="Met Person Status" id="metPersonStatus" name="metPersonStatus" value={report.metPersonStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+              <option value="">Select...</option>
+              {options.metPersonStatus}
+            </SelectField>
             <FormField label="Staying Period" id="stayingPeriod" name="stayingPeriod" value={report.stayingPeriod} onChange={handleChange} placeholder="e.g., 6 months" disabled={isReadOnly} />
-            
-            <h6 className="font-semibold text-light-text pt-2 border-t border-dark-border">Third Party Confirmation 1</h6>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SelectField label="TPC Met Person" id="tpcMetPerson1" name="tpcMetPerson1" value={report.tpcMetPerson1 || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.tpcMetPerson}</SelectField>
-              <FormField label="Name of TPC" id="tpcName1" name="tpcName1" value={report.tpcName1} onChange={handleChange} disabled={isReadOnly} />
-            </div>
-
-            <h6 className="font-semibold text-light-text pt-2 border-t border-dark-border">Third Party Confirmation 2</h6>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SelectField label="TPC Met Person" id="tpcMetPerson2" name="tpcMetPerson2" value={report.tpcMetPerson2 || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.tpcMetPerson}</SelectField>
-              <FormField label="Name of TPC" id="tpcName2" name="tpcName2" value={report.tpcName2} onChange={handleChange} disabled={isReadOnly} />
-            </div>
+          </div>
         </div>
       )}
 
+      {/* Staying Person Details Section - Only show if house is closed */}
       {report.houseStatus === HouseStatus.Closed && (
-        <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
-          <h5 className="font-semibold text-brand-primary">Confirmation Details (House Closed)</h5>
+        <div className="p-4 bg-yellow-900/20 rounded-lg space-y-4 border border-yellow-600/30">
+          <h4 className="font-semibold text-yellow-400">Confirmation Details (House Closed)</h4>
           <FormField label="Staying Person Name" id="stayingPersonName" name="stayingPersonName" value={report.stayingPersonName} onChange={handleChange} disabled={isReadOnly} />
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SelectField label="Locality" id="locality" name="locality" value={report.locality || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.localityType}</SelectField>
-        <FormField label="Address Structure" id="addressStructure" name="addressStructure" value={report.addressStructure} onChange={handleChange} placeholder="e.g., G+7" disabled={isReadOnly} />
-        <FormField label="Applicant Staying Floor" id="applicantStayingFloor" name="applicantStayingFloor" value={report.applicantStayingFloor} onChange={handleChange} placeholder="e.g., 4" disabled={isReadOnly} />
-        <FormField label="Address Structure Color" id="addressStructureColor" name="addressStructureColor" value={report.addressStructureColor} onChange={handleChange} disabled={isReadOnly} />
-        <FormField label="Door Color" id="doorColor" name="doorColor" value={report.doorColor} onChange={handleChange} disabled={isReadOnly} />
-
-        <SelectField label="Door Name Plate" id="doorNamePlateStatus" name="doorNamePlateStatus" value={report.doorNamePlateStatus || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.sightStatus}</SelectField>
-        {report.doorNamePlateStatus === SightStatus.Sighted && <FormField label="Name on Door Plate" id="nameOnDoorPlate" name="nameOnDoorPlate" value={report.nameOnDoorPlate} onChange={handleChange} disabled={isReadOnly} />}
-
-        <SelectField label="Society Name Plate" id="societyNamePlateStatus" name="societyNamePlateStatus" value={report.societyNamePlateStatus || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.sightStatus}</SelectField>
-        {report.societyNamePlateStatus === SightStatus.Sighted && <FormField label="Name on Society Board" id="nameOnSocietyBoard" name="nameOnSocietyBoard" value={report.nameOnSocietyBoard} onChange={handleChange} disabled={isReadOnly} />}
-
-        <SelectField label="Political Connection" id="politicalConnection" name="politicalConnection" value={report.politicalConnection || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.politicalConnection}</SelectField>
-        <SelectField label="Dominated Area" id="dominatedArea" name="dominatedArea" value={report.dominatedArea || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.dominatedArea}</SelectField>
-        <SelectField label="Feedback from Neighbour" id="feedbackFromNeighbour" name="feedbackFromNeighbour" value={report.feedbackFromNeighbour || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.feedbackFromNeighbour}</SelectField>
+      {/* Always Visible Fields Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Third Party Confirmation</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SelectField label="TPC Met Person 1" id="tpcMetPerson1" name="tpcMetPerson1" value={report.tpcMetPerson1 || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.tpcMetPerson}
+          </SelectField>
+          <FormField label="Name of TPC 1" id="tpcName1" name="tpcName1" value={report.tpcName1} onChange={handleChange} disabled={isReadOnly} />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SelectField label="TPC Met Person 2" id="tpcMetPerson2" name="tpcMetPerson2" value={report.tpcMetPerson2 || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.tpcMetPerson}
+          </SelectField>
+          <FormField label="Name of TPC 2" id="tpcName2" name="tpcName2" value={report.tpcName2} onChange={handleChange} disabled={isReadOnly} />
+        </div>
       </div>
 
-      <FormField label="Landmark 1" id="landmark1" name="landmark1" value={report.landmark1} onChange={handleChange} disabled={isReadOnly} />
-      <FormField label="Landmark 2" id="landmark2" name="landmark2" value={report.landmark2} onChange={handleChange} disabled={isReadOnly} />
-      <TextAreaField label="Other Observation" id="otherObservation" name="otherObservation" value={report.otherObservation} onChange={handleChange} disabled={isReadOnly} />
-      
-      <SelectField label="Final Status" id="finalStatus" name="finalStatus" value={report.finalStatus || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.finalStatus}</SelectField>
-      {report.finalStatus === FinalStatusNsp.Hold && <FormField label="Reason for Hold" id="holdReason" name="holdReason" value={report.holdReason} onChange={handleChange} disabled={isReadOnly} />}
+      {/* Property Details Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Property Details</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SelectField label="Locality" id="locality" name="locality" value={report.locality || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.localityType}
+          </SelectField>
+          <FormField label="Address Structure" id="addressStructure" name="addressStructure" value={report.addressStructure} onChange={handleChange} placeholder="e.g., G+7" disabled={isReadOnly} />
+          <FormField label="Applicant Staying Floor" id="applicantStayingFloor" name="applicantStayingFloor" value={report.applicantStayingFloor} onChange={handleChange} placeholder="e.g., 4" disabled={isReadOnly} />
+          <FormField label="Address Structure Color" id="addressStructureColor" name="addressStructureColor" value={report.addressStructureColor} onChange={handleChange} disabled={isReadOnly} />
+          <FormField label="Door Color" id="doorColor" name="doorColor" value={report.doorColor} onChange={handleChange} disabled={isReadOnly} />
+        </div>
+
+        {/* Name Plate Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SelectField label="Door Name Plate" id="doorNamePlateStatus" name="doorNamePlateStatus" value={report.doorNamePlateStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.sightStatus}
+          </SelectField>
+          {report.doorNamePlateStatus === SightStatus.Sighted && (
+            <FormField label="Name on Door Plate" id="nameOnDoorPlate" name="nameOnDoorPlate" value={report.nameOnDoorPlate} onChange={handleChange} disabled={isReadOnly} className="border-red-500" />
+          )}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SelectField label="Society Name Plate" id="societyNamePlateStatus" name="societyNamePlateStatus" value={report.societyNamePlateStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.sightStatus}
+          </SelectField>
+          {report.societyNamePlateStatus === SightStatus.Sighted && (
+            <FormField label="Name on Society Board" id="nameOnSocietyBoard" name="nameOnSocietyBoard" value={report.nameOnSocietyBoard} onChange={handleChange} disabled={isReadOnly} className="border-red-500" />
+          )}
+        </div>
+
+        {/* Landmarks */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField label="Landmark 1" id="landmark1" name="landmark1" value={report.landmark1} onChange={handleChange} disabled={isReadOnly} />
+          <FormField label="Landmark 2" id="landmark2" name="landmark2" value={report.landmark2} onChange={handleChange} disabled={isReadOnly} />
+        </div>
+      </div>
+
+      {/* Area Assessment Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Area Assessment</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <SelectField label="Political Connection" id="politicalConnection" name="politicalConnection" value={report.politicalConnection || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.politicalConnection}
+          </SelectField>
+          <SelectField label="Dominated Area" id="dominatedArea" name="dominatedArea" value={report.dominatedArea || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.dominatedArea}
+          </SelectField>
+          <SelectField label="Feedback from Neighbour" id="feedbackFromNeighbour" name="feedbackFromNeighbour" value={report.feedbackFromNeighbour || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.feedbackFromNeighbour}
+          </SelectField>
+        </div>
+        <TextAreaField label="Other Observation" id="otherObservation" name="otherObservation" value={report.otherObservation} onChange={handleChange} disabled={isReadOnly} />
+      </div>
+
+      {/* Final Status Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Final Status</h4>
+        <SelectField label="Final Status" id="finalStatus" name="finalStatus" value={report.finalStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+          <option value="">Select...</option>
+          {options.finalStatus}
+        </SelectField>
+        {report.finalStatus === FinalStatusNsp.Hold && (
+          <FormField label="Reason for Hold" id="holdReason" name="holdReason" value={report.holdReason} onChange={handleChange} disabled={isReadOnly} />
+        )}
+      </div>
       
       <ImageCapture
         images={report.images}
