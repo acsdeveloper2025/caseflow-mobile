@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Test - CaseFlow Mobile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #111827;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            background-color: #1f2937;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background-color: #065f46; }
+        .error { background-color: #7f1d1d; }
+        .warning { background-color: #78350f; }
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #2563eb; }
+        video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+    <h1>📱 CaseFlow Mobile - Camera Test</h1>
+    
+    <div class="test-section">
+        <h3>🔍 Environment Check</h3>
+        <div id="environment-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📷 Camera Test</h3>
+        <button onclick="testCamera()">Test Camera Access</button>
+        <div id="camera-status"></div>
+        <video id="testVideo" autoplay playsinline muted style="display: none;"></video>
+    </div>
+
+    <div class="test-section">
+        <h3>📍 Location Test</h3>
+        <button onclick="testLocation()">Test Location Access</button>
+        <div id="location-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🌐 Access CaseFlow Mobile</h3>
+        <p>If all tests pass, access the full application:</p>
+        <a href="http://192.168.1.25:5173/" target="_blank" style="color: #60a5fa;">
+            http://192.168.1.25:5173/
+        </a>
+    </div>
+
+    <script>
+        // Environment check
+        function checkEnvironment() {
+            const status = document.getElementById('environment-status');
+            let html = '';
+
+            // Protocol check
+            if (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+                html += '<div class="status success">✅ Protocol: Secure connection</div>';
+            } else {
+                html += '<div class="status warning">⚠️ Protocol: HTTP (camera may not work)</div>';
+            }
+
+            // Browser check
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                html += '<div class="status success">✅ Browser: Camera API supported</div>';
+            } else {
+                html += '<div class="status error">❌ Browser: Camera API not supported</div>';
+            }
+
+            // Geolocation check
+            if (navigator.geolocation) {
+                html += '<div class="status success">✅ Location: Geolocation API supported</div>';
+            } else {
+                html += '<div class="status warning">⚠️ Location: Geolocation API not supported</div>';
+            }
+
+            // User agent
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+            
+            if (isAndroid) {
+                html += '<div class="status success">✅ Device: Android detected</div>';
+            } else if (isMobile) {
+                html += '<div class="status success">✅ Device: Mobile device detected</div>';
+            } else {
+                html += '<div class="status warning">⚠️ Device: Desktop browser (use mobile for testing)</div>';
+            }
+
+            status.innerHTML = html;
+        }
+
+        // Camera test
+        async function testCamera() {
+            const status = document.getElementById('camera-status');
+            const video = document.getElementById('testVideo');
+            
+            status.innerHTML = '<div class="status warning">🔄 Testing camera access...</div>';
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' },
+                    audio: false
+                });
+
+                video.srcObject = stream;
+                video.style.display = 'block';
+                status.innerHTML = '<div class="status success">✅ Camera access successful!</div>';
+
+                // Stop stream after 5 seconds
+                setTimeout(() => {
+                    stream.getTracks().forEach(track => track.stop());
+                    video.style.display = 'none';
+                    status.innerHTML += '<div class="status success">✅ Camera test completed</div>';
+                }, 5000);
+
+            } catch (error) {
+                let errorMsg = 'Camera access failed: ';
+                
+                if (error.name === 'NotAllowedError') {
+                    errorMsg += 'Permission denied. Please allow camera access.';
+                } else if (error.name === 'NotFoundError') {
+                    errorMsg += 'No camera found on this device.';
+                } else if (error.name === 'NotSupportedError') {
+                    errorMsg += 'Camera not supported on this device.';
+                } else {
+                    errorMsg += error.message;
+                }
+
+                status.innerHTML = `<div class="status error">❌ ${errorMsg}</div>`;
+            }
+        }
+
+        // Location test
+        function testLocation() {
+            const status = document.getElementById('location-status');
+            
+            status.innerHTML = '<div class="status warning">🔄 Testing location access...</div>';
+
+            if (!navigator.geolocation) {
+                status.innerHTML = '<div class="status error">❌ Geolocation not supported</div>';
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude, accuracy } = position.coords;
+                    status.innerHTML = `
+                        <div class="status success">✅ Location access successful!</div>
+                        <div class="status success">📍 Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}</div>
+                        <div class="status success">🎯 Accuracy: ${accuracy}m</div>
+                    `;
+                },
+                (error) => {
+                    let errorMsg = 'Location access failed: ';
+                    
+                    if (error.code === error.PERMISSION_DENIED) {
+                        errorMsg += 'Permission denied. Please allow location access.';
+                    } else if (error.code === error.POSITION_UNAVAILABLE) {
+                        errorMsg += 'Location information unavailable.';
+                    } else if (error.code === error.TIMEOUT) {
+                        errorMsg += 'Location request timed out.';
+                    } else {
+                        errorMsg += error.message;
+                    }
+
+                    status.innerHTML = `<div class="status error">❌ ${errorMsg}</div>`;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000
+                }
+            );
+        }
+
+        // Run environment check on load
+        checkEnvironment();
+    </script>
+</body>
+</html>

@@ -17,21 +17,82 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
   const [error, setError] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<CapturedImage | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startCamera = async () => {
     try {
       setError(null);
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
+
+      // Check if we're on HTTPS or localhost (required for camera access)
+      if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        throw new Error('Camera access requires HTTPS connection');
+      }
+
+      // Check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera access is not supported on this device');
+      }
+
+      // Enhanced constraints for better Android compatibility
+      const constraints = {
+        video: {
+          facingMode: 'environment',
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          aspectRatio: { ideal: 16/9 }
+        },
+        audio: false
+      };
+
+      // Try with enhanced constraints first
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (enhancedError) {
+        console.warn('Enhanced constraints failed, trying basic constraints:', enhancedError);
+        // Fallback to basic constraints for older Android devices
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+          audio: false
+        });
+      }
+
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+
+        // Ensure video plays on Android
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current) {
+            videoRef.current.play().catch(playError => {
+              console.warn('Video play failed:', playError);
+            });
+          }
+        };
       }
     } catch (err) {
-      setError('Unable to access camera. Please check permissions.');
+      let errorMessage = 'Unable to access camera. ';
+
+      if (err instanceof Error) {
+        if (err.name === 'NotAllowedError') {
+          errorMessage += 'Please allow camera permissions and try again.';
+        } else if (err.name === 'NotFoundError') {
+          errorMessage += 'No camera found on this device.';
+        } else if (err.name === 'NotSupportedError') {
+          errorMessage += 'Camera is not supported on this device.';
+        } else if (err.name === 'NotReadableError') {
+          errorMessage += 'Camera is already in use by another application.';
+        } else {
+          errorMessage += err.message;
+        }
+      } else {
+        errorMessage += 'Please check permissions and try again.';
+      }
+
+      setError(errorMessage);
       console.error('Camera error:', err);
     }
   };
@@ -49,6 +110,81 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
     startCamera();
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file.');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Image file is too large. Please select a file smaller than 10MB.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const dataUrl = e.target?.result as string;
+        if (!dataUrl) throw new Error('Failed to read image file');
+
+        // Get current position for uploaded image
+        let latitude = 0;
+        let longitude = 0;
+        let accuracy;
+
+        try {
+          const position = await getCurrentPosition();
+          latitude = position.coords.latitude;
+          longitude = position.coords.longitude;
+          accuracy = position.coords.accuracy;
+        } catch (geoError) {
+          console.warn('Geolocation failed for uploaded image:', geoError);
+        }
+
+        const timestamp = new Date().toISOString();
+        const newImage: CapturedImage & { accuracy?: number } = {
+          id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          dataUrl,
+          latitude,
+          longitude,
+          timestamp,
+          accuracy: accuracy || undefined,
+        };
+
+        setPreviewImage(newImage);
+        setIsPreviewOpen(true);
+      } catch (err) {
+        setError('Failed to process image file. Please try again.');
+        console.error('File upload error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    reader.onerror = () => {
+      setError('Failed to read image file. Please try again.');
+      setIsLoading(false);
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const handleUseFallback = () => {
+    setShowFallback(true);
+    setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   const getCurrentPosition = (): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -56,11 +192,31 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
         return;
       }
 
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
+      // Enhanced geolocation options for better Android compatibility
+      const options = {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000
-      });
+        timeout: 15000, // Increased timeout for Android devices
+        maximumAge: 30000 // Reduced max age for more accurate location
+      };
+
+      // Try high accuracy first
+      navigator.geolocation.getCurrentPosition(
+        resolve,
+        (error) => {
+          console.warn('High accuracy geolocation failed, trying standard accuracy:', error);
+          // Fallback to standard accuracy for Android devices with GPS issues
+          navigator.geolocation.getCurrentPosition(
+            resolve,
+            reject,
+            {
+              enableHighAccuracy: false,
+              timeout: 10000,
+              maximumAge: 60000
+            }
+          );
+        },
+        options
+      );
     });
   };
 
@@ -71,23 +227,60 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
       setIsLoading(true);
       setError(null);
 
-      // Get current position
-      const position = await getCurrentPosition();
-      const { latitude, longitude, accuracy } = position.coords;
+      // Get current position with fallback
+      let position;
+      let latitude = 0;
+      let longitude = 0;
+      let accuracy;
+
+      try {
+        position = await getCurrentPosition();
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+        accuracy = position.coords.accuracy;
+      } catch (geoError) {
+        console.warn('Geolocation failed, proceeding without location:', geoError);
+        // Continue without location data - don't block photo capture
+      }
+
       const timestamp = new Date().toISOString();
 
-      // Capture photo
+      // Ensure video is ready for capture
+      if (videoRef.current.readyState !== videoRef.current.HAVE_ENOUGH_DATA) {
+        throw new Error('Camera is not ready. Please wait and try again.');
+      }
+
+      // Capture photo with enhanced canvas handling for Android
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
       if (!context) throw new Error('Could not get canvas context');
 
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      context.drawImage(videoRef.current, 0, 0);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      // Get actual video dimensions
+      const videoWidth = videoRef.current.videoWidth || videoRef.current.clientWidth;
+      const videoHeight = videoRef.current.videoHeight || videoRef.current.clientHeight;
+
+      if (videoWidth === 0 || videoHeight === 0) {
+        throw new Error('Invalid video dimensions. Please restart the camera.');
+      }
+
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
+
+      // Draw image with better quality settings for Android
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+      context.drawImage(videoRef.current, 0, 0, videoWidth, videoHeight);
+
+      // Convert to JPEG with optimized quality for mobile
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+      // Validate the captured image
+      if (!dataUrl || dataUrl === 'data:,') {
+        throw new Error('Failed to capture image. Please try again.');
+      }
 
       const newImage: CapturedImage & { accuracy?: number } = {
-        id: `img_${Date.now()}`,
+        id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         dataUrl,
         latitude,
         longitude,
@@ -100,7 +293,15 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
       setIsPreviewOpen(true);
       stopCamera();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to capture photo');
+      let errorMessage = 'Failed to capture photo. ';
+
+      if (err instanceof Error) {
+        errorMessage += err.message;
+      } else {
+        errorMessage += 'Please try again.';
+      }
+
+      setError(errorMessage);
       console.error('Photo capture error:', err);
     } finally {
       setIsLoading(false);
@@ -184,19 +385,48 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
       <div className="flex items-center justify-between">
         <h6 className="font-semibold text-light-text">📷 Photo Capture</h6>
         {!isCapturing && (
-          <button
-            onClick={handleStartCapture}
-            className="px-4 py-2 text-sm font-semibold rounded-md bg-brand-primary hover:bg-brand-secondary text-white transition-colors flex items-center gap-2"
-          >
-            <CameraIcon width={16} height={16} />
-            Take Photo
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleStartCapture}
+              className="px-4 py-2 text-sm font-semibold rounded-md bg-brand-primary hover:bg-brand-secondary text-white transition-colors flex items-center gap-2"
+            >
+              <CameraIcon width={16} height={16} />
+              Take Photo
+            </button>
+            <button
+              onClick={handleUseFallback}
+              className="px-3 py-2 text-sm font-semibold rounded-md bg-gray-600 hover:bg-gray-500 text-white transition-colors"
+              title="Upload from gallery"
+            >
+              📁
+            </button>
+          </div>
         )}
       </div>
 
+      {/* Hidden file input for fallback */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
+
       {error && (
         <div className="p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-red-400 text-sm">
-          {error}
+          <div className="flex flex-col gap-2">
+            <span>{error}</span>
+            {error.includes('camera') && !showFallback && (
+              <button
+                onClick={handleUseFallback}
+                className="text-yellow-400 hover:text-yellow-300 text-sm underline self-start"
+              >
+                Try uploading from gallery instead
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -227,7 +457,21 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
 
       <Modal isVisible={isCapturing} onClose={stopCamera} title="Capture Photo">
         <div className="relative">
-          <video ref={videoRef} autoPlay playsInline className="w-full h-auto rounded-lg bg-black" />
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            controls={false}
+            className="w-full h-auto rounded-lg bg-black"
+            style={{ objectFit: 'cover', minHeight: '300px' }}
+            onLoadedMetadata={() => {
+              // Ensure video plays on Android devices
+              if (videoRef.current) {
+                videoRef.current.play().catch(console.warn);
+              }
+            }}
+          />
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex justify-center">
             <button
               onClick={handleTakePhoto}
