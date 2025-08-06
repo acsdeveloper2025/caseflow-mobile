@@ -5,7 +5,8 @@ import { summarizeReport } from '../services/geminiService';
 import { SparklesIcon, ChevronDownIcon, ChevronUpIcon, CheckIcon, XIcon, InfoIcon, ArrowUpIcon, ArrowDownIcon } from './Icons';
 import Spinner from './Spinner';
 import Modal from './Modal';
-import ResidenceForm from './forms/residence/ResidenceForm';
+import { useCaseAutoSaveStatus } from '../hooks/useCaseAutoSaveStatus';
+import ResidenceForm from './forms/residence/ResidenceFormSimple';
 import ShiftedResidenceForm from './forms/residence/ShiftedResidenceForm';
 import NspResidenceForm from './forms/residence/NspResidenceForm';
 import EntryRestrictedResidenceForm from './forms/residence/EntryRestrictedResidenceForm';
@@ -96,10 +97,14 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isRevokeModalOpen, setIsRevokeModalOpen] = useState(false);
   const [revokeReason, setRevokeReason] = useState<RevokeReason>(RevokeReason.NotMyArea);
+
+  // Check for auto-saved data for this case
+  const { hasAutoSaveData } = useCaseAutoSaveStatus(caseData.id);
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const [summaryContent, setSummaryContent] = useState('');
   const [isSummarizingReport, setIsSummarizingReport] = useState(false);
   const [isFormExpanding, setIsFormExpanding] = useState(false);
+  const [isFormScrollable, setIsFormScrollable] = useState(false);
   const formContentRef = useRef<HTMLDivElement>(null);
   
   const isAssigned = caseData.status === CaseStatus.Assigned;
@@ -117,6 +122,9 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
   };
 
   const handleOutcomeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // Prevent event bubbling to avoid card collapse
+    e.stopPropagation();
+
     const newOutcome = e.target.value as VerificationOutcome || null;
     updateVerificationOutcome(caseData.id, newOutcome);
 
@@ -129,11 +137,19 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
       setTimeout(() => {
         setIsFormExpanding(false);
         if (formContentRef.current) {
+          // Scroll the form container into view
           formContentRef.current.scrollIntoView({
             behavior: 'smooth',
-            block: 'nearest',
+            block: 'start',
             inline: 'nearest'
           });
+
+          // Reset the form's internal scroll position to top
+          formContentRef.current.scrollTop = 0;
+
+          // Check if content is scrollable
+          const isScrollable = formContentRef.current.scrollHeight > formContentRef.current.clientHeight;
+          setIsFormScrollable(isScrollable);
         }
       }, 300); // Wait for expansion animation to start
     }
@@ -359,7 +375,7 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
 
   return (
     <>
-    <div className={`bg-dark-card rounded-lg shadow-lg mb-4 mx-4 p-4 transition-all duration-300 ${statusColor[caseData.status]}`}>
+    <div className={`bg-dark-card rounded-lg shadow-lg mb-4 mx-4 p-4 transition-all duration-300 ${statusColor[caseData.status]} ${hasAutoSaveData ? 'ring-2 ring-yellow-400 bg-yellow-50/5' : ''}`}>
       <div 
         className={`flex justify-between items-start ${caseData.status !== CaseStatus.Assigned ? 'cursor-pointer' : ''}`}
         onClick={caseData.status !== CaseStatus.Assigned ? () => setIsExpanded(!isExpanded) : undefined}
@@ -376,9 +392,9 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
         </div>
       </div>
 
-      <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isExpanded ? 'max-h-[8000px] mt-4' : 'max-h-0'}`}>
+      <div className={`transition-all duration-500 ease-in-out ${isExpanded ? 'max-h-[8000px] mt-4' : 'max-h-0 overflow-hidden'}`}>
           {isInProgress && verificationOutcomeOptions && (
-              <div className="mb-4">
+              <div className="mb-4" onClick={(e) => e.stopPropagation()}>
                   <SelectField
                       label="Verification Outcome"
                       id={`outcome-${caseData.id}`}
@@ -391,7 +407,20 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
                   </SelectField>
               </div>
           )}
-          <div ref={formContentRef}>
+          <div
+            ref={formContentRef}
+            style={{
+              maxHeight: isExpanded ? '70vh' : '0',
+              overflowY: isExpanded ? 'auto' : 'hidden',
+              overflowX: 'hidden',
+              transition: 'max-height 0.5s ease-in-out',
+              // Custom scrollbar styling
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#4B5563 #1F2937'
+            }}
+            className="custom-scrollbar"
+            onClick={(e) => e.stopPropagation()}
+          >
             {isFormExpanding ? (
               <div style={{
                 display: 'flex',
@@ -404,7 +433,27 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
                 <span style={{ marginLeft: '8px', fontSize: '14px' }}>Opening form...</span>
               </div>
             ) : (
-              renderFormContent()
+              <div style={{
+                paddingRight: '8px',
+                paddingBottom: '16px',
+                paddingTop: '8px'
+              }}>
+                {renderFormContent()}
+                {isFormScrollable && (
+                  <div style={{
+                    position: 'sticky',
+                    bottom: '0',
+                    textAlign: 'center',
+                    padding: '8px',
+                    background: 'linear-gradient(transparent, #1F2937)',
+                    color: '#9CA3AF',
+                    fontSize: '12px',
+                    pointerEvents: 'none'
+                  }}>
+                    ↓ Scroll down for more fields ↓
+                  </div>
+                )}
+              </div>
             )}
           </div>
       </div>
