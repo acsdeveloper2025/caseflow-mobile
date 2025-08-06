@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CapturedImage } from '../types';
 import { CameraIcon, MapPinIcon, ClockIcon } from './Icons';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Geolocation } from '@capacitor/geolocation';
 
 interface ImageCaptureProps {
   images: CapturedImage[];
@@ -21,10 +23,75 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
   const [imageMetadata, setImageMetadata] = useState<Record<string, ImageMetadata>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleTakePhoto = () => {
+  const handleTakePhoto = async () => {
     setError(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
+    setIsLoading(true);
+
+    try {
+      // Use native camera if available, fallback to web
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera,
+      });
+
+      if (image.dataUrl) {
+        await processImage(image.dataUrl);
+      } else {
+        throw new Error('Failed to capture image');
+      }
+    } catch (error) {
+      console.warn('Native camera failed, falling back to web camera:', error);
+      // Fallback to web camera
+      if (fileInputRef.current) {
+        fileInputRef.current.click();
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const processImage = async (dataUrl: string) => {
+    try {
+      // Get current position using Capacitor Geolocation
+      let latitude = 0;
+      let longitude = 0;
+      let accuracy;
+
+      try {
+        const position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 10000,
+        });
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+        accuracy = position.coords.accuracy;
+      } catch (geoError) {
+        console.warn('Geolocation failed, proceeding without location:', geoError);
+        // Continue without location data - don't block photo capture
+      }
+
+      const timestamp = new Date().toISOString();
+      const newImage: CapturedImage & { accuracy?: number } = {
+        id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        dataUrl,
+        latitude,
+        longitude,
+        timestamp,
+        accuracy: accuracy || undefined,
+      };
+
+      // Directly add to images array
+      onImagesChange([...images, newImage]);
+
+      // Fetch address for the new image if location is available
+      if (latitude !== 0 && longitude !== 0) {
+        fetchAddressForImage(newImage.id, latitude, longitude);
+      }
+    } catch (err) {
+      setError('Failed to process captured image. Please try again.');
+      console.error('Image processing error:', err);
     }
   };
 
@@ -92,19 +159,42 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
     });
   }, [images]);
 
-  const getCurrentPosition = (): Promise<GeolocationPosition> => {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error('Geolocation is not supported'));
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
+  const getCurrentPosition = async (): Promise<GeolocationPosition> => {
+    try {
+      // Try Capacitor Geolocation first
+      const position = await Geolocation.getCurrentPosition({
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 60000
       });
-    });
+
+      // Convert Capacitor position to standard GeolocationPosition format
+      return {
+        coords: {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          altitude: position.coords.altitude,
+          altitudeAccuracy: position.coords.altitudeAccuracy,
+          heading: position.coords.heading,
+          speed: position.coords.speed,
+        },
+        timestamp: position.timestamp,
+      } as GeolocationPosition;
+    } catch (error) {
+      // Fallback to web geolocation
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error('Geolocation is not supported'));
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
+        });
+      });
+    }
   };
 
   const handleFileCapture = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,23 +211,8 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
     setError(null);
 
     try {
-      // Get current position
-      let latitude = 0;
-      let longitude = 0;
-      let accuracy;
-
-      try {
-        const position = await getCurrentPosition();
-        latitude = position.coords.latitude;
-        longitude = position.coords.longitude;
-        accuracy = position.coords.accuracy;
-      } catch (geoError) {
-        console.warn('Geolocation failed, proceeding without location:', geoError);
-        // Continue without location data - don't block photo capture
-      }
-
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const dataUrl = e.target?.result as string;
         if (!dataUrl) {
           setError('Failed to process captured image.');
@@ -145,24 +220,7 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
           return;
         }
 
-        const timestamp = new Date().toISOString();
-        const newImage: CapturedImage & { accuracy?: number } = {
-          id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          dataUrl,
-          latitude,
-          longitude,
-          timestamp,
-          accuracy: accuracy || undefined,
-        };
-
-        // Directly add to images array without preview
-        onImagesChange([...images, newImage]);
-
-        // Fetch address for the new image if location is available
-        if (latitude !== 0 && longitude !== 0) {
-          fetchAddressForImage(newImage.id, latitude, longitude);
-        }
-
+        await processImage(dataUrl);
         setIsLoading(false);
       };
 
