@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { CapturedImage } from '../types';
-import { CameraIcon } from './Icons';
+import { CameraIcon, MapPinIcon, ClockIcon } from './Icons';
 
 interface ImageCaptureProps {
   images: CapturedImage[];
@@ -9,9 +9,16 @@ interface ImageCaptureProps {
   minImages?: number;
 }
 
+interface ImageMetadata {
+  address?: string;
+  isLoadingAddress?: boolean;
+  addressError?: string;
+}
+
 const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isReadOnly, minImages }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageMetadata, setImageMetadata] = useState<Record<string, ImageMetadata>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleTakePhoto = () => {
@@ -21,7 +28,69 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
     }
   };
 
+  const reverseGeocode = async (latitude: number, longitude: number): Promise<string> => {
+    try {
+      // Using OpenStreetMap Nominatim API (free, no API key required)
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'CaseFlow-Mobile-App'
+          }
+        }
+      );
 
+      if (!response.ok) {
+        throw new Error('Geocoding service unavailable');
+      }
+
+      const data = await response.json();
+
+      if (data && data.display_name) {
+        return data.display_name;
+      } else {
+        throw new Error('Address not found');
+      }
+    } catch (error) {
+      console.warn('Reverse geocoding failed:', error);
+      throw error;
+    }
+  };
+
+  const fetchAddressForImage = async (imageId: string, latitude: number, longitude: number) => {
+    if (latitude === 0 && longitude === 0) return;
+
+    setImageMetadata(prev => ({
+      ...prev,
+      [imageId]: { ...prev[imageId], isLoadingAddress: true }
+    }));
+
+    try {
+      const address = await reverseGeocode(latitude, longitude);
+      setImageMetadata(prev => ({
+        ...prev,
+        [imageId]: { ...prev[imageId], address, isLoadingAddress: false }
+      }));
+    } catch (error) {
+      setImageMetadata(prev => ({
+        ...prev,
+        [imageId]: {
+          ...prev[imageId],
+          addressError: 'Address unavailable',
+          isLoadingAddress: false
+        }
+      }));
+    }
+  };
+
+  // Fetch addresses for images when component loads or images change
+  useEffect(() => {
+    images.forEach(image => {
+      if (image.latitude !== 0 && image.longitude !== 0 && !imageMetadata[image.id]) {
+        fetchAddressForImage(image.id, image.latitude, image.longitude);
+      }
+    });
+  }, [images]);
 
   const getCurrentPosition = (): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
@@ -88,6 +157,12 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
 
         // Directly add to images array without preview
         onImagesChange([...images, newImage]);
+
+        // Fetch address for the new image if location is available
+        if (latitude !== 0 && longitude !== 0) {
+          fetchAddressForImage(newImage.id, latitude, longitude);
+        }
+
         setIsLoading(false);
       };
 
@@ -109,6 +184,33 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
 
   const handleDeleteImage = (id: string) => {
     onImagesChange(images.filter(img => img.id !== id));
+    // Clean up metadata for deleted image
+    setImageMetadata(prev => {
+      const newMetadata = { ...prev };
+      delete newMetadata[id];
+      return newMetadata;
+    });
+  };
+
+  const formatCoordinates = (lat: number, lng: number): string => {
+    return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+  };
+
+  const formatDateTime = (timestamp: string): string => {
+    const date = new Date(timestamp);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
+  const generateMapUrl = (lat: number, lng: number): string => {
+    // Using OpenStreetMap-based map embed
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.001},${lat-0.001},${lng+0.001},${lat+0.001}&layer=mapnik&marker=${lat},${lng}`;
   };
 
 
@@ -166,21 +268,96 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
       )}
 
       {images.length > 0 && (
-        <div className="grid grid-cols-2 gap-4">
-          {images.map((image) => (
-            <div key={image.id} className="relative group">
-              <img src={image.dataUrl} alt="Captured" className="w-full h-32 object-cover rounded-lg" />
-              <div className="absolute bottom-2 left-2 text-xs text-white bg-black/70 px-2 py-1 rounded">
-                {new Date(image.timestamp).toLocaleTimeString()}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {images.map((image) => {
+            const metadata = imageMetadata[image.id] || {};
+            const hasLocation = image.latitude !== 0 && image.longitude !== 0;
+
+            return (
+              <div key={image.id} className="bg-gray-900/50 rounded-lg border border-dark-border overflow-hidden">
+                {/* Image Container */}
+                <div className="relative group">
+                  <img src={image.dataUrl} alt="Captured" className="w-full h-48 object-cover" />
+                  <button
+                    onClick={() => handleDeleteImage(image.id)}
+                    className="absolute top-2 right-2 p-1 bg-red-600 hover:bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Metadata Panel */}
+                <div className="p-4 space-y-3">
+                  {/* Date and Time */}
+                  <div className="flex items-center gap-2 text-sm">
+                    <ClockIcon width={16} height={16} className="text-brand-primary" />
+                    <span className="text-light-text font-medium">
+                      {formatDateTime(image.timestamp)}
+                    </span>
+                  </div>
+
+                  {/* GPS Coordinates */}
+                  {hasLocation ? (
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPinIcon width={16} height={16} className="text-brand-primary" />
+                      <span className="text-medium-text">
+                        {formatCoordinates(image.latitude, image.longitude)}
+                      </span>
+                      {(image as any).accuracy && (
+                        <span className="text-xs text-gray-400">
+                          (±{Math.round((image as any).accuracy)}m)
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPinIcon width={16} height={16} className="text-gray-500" />
+                      <span className="text-gray-500">Location not available</span>
+                    </div>
+                  )}
+
+                  {/* Address */}
+                  {hasLocation && (
+                    <div className="text-sm">
+                      <div className="text-medium-text font-medium mb-1">Address:</div>
+                      {metadata.isLoadingAddress ? (
+                        <div className="text-gray-400 italic">Loading address...</div>
+                      ) : metadata.address ? (
+                        <div className="text-light-text text-xs leading-relaxed">
+                          {metadata.address}
+                        </div>
+                      ) : metadata.addressError ? (
+                        <div className="text-gray-500 text-xs">{metadata.addressError}</div>
+                      ) : (
+                        <div className="text-gray-500 text-xs">Address not available</div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Interactive Map */}
+                  {hasLocation && (
+                    <div className="space-y-2">
+                      <div className="text-medium-text font-medium text-sm">Location Map:</div>
+                      <div className="relative bg-gray-800 rounded-lg overflow-hidden" style={{ height: '120px' }}>
+                        <iframe
+                          src={generateMapUrl(image.latitude, image.longitude)}
+                          width="100%"
+                          height="120"
+                          style={{ border: 0 }}
+                          loading="lazy"
+                          title={`Map for image ${image.id}`}
+                          className="rounded-lg"
+                        />
+                        <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                          📍 Photo Location
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <button
-                onClick={() => handleDeleteImage(image.id)}
-                className="absolute top-2 right-2 p-1 bg-red-600 hover:bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
