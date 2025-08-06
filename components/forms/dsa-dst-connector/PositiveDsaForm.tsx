@@ -57,6 +57,17 @@ const PositiveDsaForm: React.FC<PositiveDsaFormProps> = ({ caseData }) => {
             if (!report.nameOnBoard || report.nameOnBoard.trim() === '') return false;
         }
     }
+
+    if (report.officeStatus === OfficeStatusOffice.Closed) {
+        const closedFields: (keyof PositiveDsaReportData)[] = [
+            'addressStatus', 'companyNatureOfBusiness', 'businessPeriod', 'activeClient', 'companyNamePlateStatus',
+            'tpcMetPerson1', 'nameOfTpc1', 'tpcConfirmation1', 'tpcMetPerson2', 'nameOfTpc2', 'tpcConfirmation2'
+        ];
+        if (!checkFields(closedFields)) return false;
+        if (report.companyNamePlateStatus === SightStatus.Sighted) {
+            if (!report.nameOnBoard || report.nameOnBoard.trim() === '') return false;
+        }
+    }
     
     if (report.finalStatus === FinalStatus.Hold) {
         if (!report.holdReason || report.holdReason.trim() === '') return false;
@@ -210,6 +221,62 @@ const PositiveDsaForm: React.FC<PositiveDsaFormProps> = ({ caseData }) => {
             </SelectField>
             {report.companyNamePlateStatus === SightStatus.Sighted && (
               <FormField label="Name on Board" id="nameOnBoard" name="nameOnBoard" value={report.nameOnBoard} onChange={handleChange} disabled={isReadOnly} className="border-red-500" />
+            )}
+          </div>
+
+          {/* Third Party Confirmation */}
+          <div className="space-y-4">
+            <h5 className="font-semibold text-brand-primary">Third Party Confirmation</h5>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <SelectField label="TPC Met Person 1" id="tpcMetPerson1" name="tpcMetPerson1" value={report.tpcMetPerson1 || ''} onChange={handleChange} disabled={isReadOnly}>
+                <option value="">Select...</option>
+                {options.tpcMetPerson}
+              </SelectField>
+              <FormField label="Name of TPC 1" id="nameOfTpc1" name="nameOfTpc1" value={report.nameOfTpc1} onChange={handleChange} disabled={isReadOnly} />
+              <SelectField label="TPC Confirmation 1" id="tpcConfirmation1" name="tpcConfirmation1" value={report.tpcConfirmation1 || ''} onChange={handleChange} disabled={isReadOnly}>
+                <option value="">Select...</option>
+                {options.tpcConfirmation}
+              </SelectField>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <SelectField label="TPC Met Person 2" id="tpcMetPerson2" name="tpcMetPerson2" value={report.tpcMetPerson2 || ''} onChange={handleChange} disabled={isReadOnly}>
+                <option value="">Select...</option>
+                {options.tpcMetPerson}
+              </SelectField>
+              <FormField label="Name of TPC 2" id="nameOfTpc2" name="nameOfTpc2" value={report.nameOfTpc2} onChange={handleChange} disabled={isReadOnly} />
+              <SelectField label="TPC Confirmation 2" id="tpcConfirmation2" name="tpcConfirmation2" value={report.tpcConfirmation2 || ''} onChange={handleChange} disabled={isReadOnly}>
+                <option value="">Select...</option>
+                {options.tpcConfirmation}
+              </SelectField>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DSA Verification Details Section - Office Closed */}
+      {report.officeStatus === OfficeStatusOffice.Closed && (
+        <div className="p-4 bg-yellow-900/20 rounded-lg space-y-4 border border-yellow-600/30">
+          <h4 className="font-semibold text-yellow-400">DSA Verification Details (Office Closed)</h4>
+
+          {/* Business Details for Closed Office */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SelectField label="Address Status" id="addressStatus" name="addressStatus" value={report.addressStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+              <option value="">Select...</option>
+              {options.addressStatus}
+            </SelectField>
+            <FormField label="Company Nature of Business" id="companyNatureOfBusiness" name="companyNatureOfBusiness" value={report.companyNatureOfBusiness} onChange={handleChange} disabled={isReadOnly} />
+            <FormField label="Business Period" id="businessPeriod" name="businessPeriod" value={report.businessPeriod} onChange={handleChange} placeholder="e.g., 5 years" disabled={isReadOnly} />
+            <FormField label="Active Client" id="activeClient" name="activeClient" value={report.activeClient} onChange={handleChange} disabled={isReadOnly} />
+          </div>
+
+          {/* Company Name Plate */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SelectField label="Company Name Plate" id="companyNamePlateStatus" name="companyNamePlateStatus" value={report.companyNamePlateStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+              <option value="">Select...</option>
+              {options.sightStatus}
+            </SelectField>
+            {report.companyNamePlateStatus === SightStatus.Sighted && (
+              <FormField label="Name on Board" id="nameOnBoard" name="nameOnBoard" value={report.nameOnBoard} onChange={handleChange} disabled={isReadOnly} />
             )}
           </div>
 
