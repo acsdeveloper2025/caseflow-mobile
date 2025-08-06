@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Case, CaseStatus, VerificationType, VerificationOutcome, RevokeReason } from '../types';
 import { useCases } from '../context/CaseContext';
 import { summarizeReport } from '../services/geminiService';
@@ -62,11 +62,8 @@ const getEnumOptions = (enumObject: object): React.ReactElement[] => Object.valu
 ));
 
 const commonOutcomes = {
-    Positive: VerificationOutcome.Positive,
-    Negative: VerificationOutcome.Negative,
     PositiveAndDoorLocked: VerificationOutcome.PositiveAndDoorLocked,
-    Shifted: VerificationOutcome.Shifted,
-    DoorLockedAndShifted: VerificationOutcome.DoorLockedAndShifted,
+    ShiftedAndDoorLocked: VerificationOutcome.ShiftedAndDoorLocked,
     NSPAndDoorLocked: VerificationOutcome.NSPAndDoorLocked,
     ERT: VerificationOutcome.ERT,
     Untraceable: VerificationOutcome.Untraceable,
@@ -81,15 +78,11 @@ const verificationOptionsMap: { [key in VerificationType]?: React.ReactElement[]
     [VerificationType.NOC]: getEnumOptions(commonOutcomes),
     [VerificationType.Connector]: getEnumOptions(commonOutcomes),
     [VerificationType.PropertyAPF]: getEnumOptions({
-        Positive: VerificationOutcome.Positive,
-        Negative: VerificationOutcome.Negative,
         NSPAndDoorLocked: VerificationOutcome.NSPAndDoorLocked,
         ERT: VerificationOutcome.ERT,
         Untraceable: VerificationOutcome.Untraceable,
     }),
     [VerificationType.PropertyIndividual]: getEnumOptions({
-        Positive: VerificationOutcome.Positive,
-        Negative: VerificationOutcome.Negative,
         PositiveAndDoorLocked: VerificationOutcome.PositiveAndDoorLocked,
         NSPAndDoorLocked: VerificationOutcome.NSPAndDoorLocked,
         ERT: VerificationOutcome.ERT,
@@ -106,6 +99,8 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const [summaryContent, setSummaryContent] = useState('');
   const [isSummarizingReport, setIsSummarizingReport] = useState(false);
+  const [isFormExpanding, setIsFormExpanding] = useState(false);
+  const formContentRef = useRef<HTMLDivElement>(null);
   
   const isAssigned = caseData.status === CaseStatus.Assigned;
   const isInProgress = caseData.status === CaseStatus.InProgress;
@@ -124,6 +119,24 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
   const handleOutcomeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newOutcome = e.target.value as VerificationOutcome || null;
     updateVerificationOutcome(caseData.id, newOutcome);
+
+    // Automatically expand the card to show the form when an outcome is selected
+    if (newOutcome && !isExpanded) {
+      setIsFormExpanding(true);
+      setIsExpanded(true);
+
+      // Scroll to the form content after a brief delay to allow expansion animation
+      setTimeout(() => {
+        setIsFormExpanding(false);
+        if (formContentRef.current) {
+          formContentRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'nearest'
+          });
+        }
+      }, 300); // Wait for expansion animation to start
+    }
   };
 
   const handleRevokeConfirm = () => {
@@ -170,14 +183,31 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
 
   const timestamp = getTimestampInfo();
 
+  const renderOutcomeSelectionPrompt = () => (
+    <div style={{
+      textAlign: 'center',
+      padding: '24px 16px',
+      margin: '16px 0',
+      backgroundColor: '#1F2937',
+      borderRadius: '8px',
+      border: '2px dashed #374151'
+    }}>
+      <div style={{ color: '#00a950', marginBottom: '8px', fontSize: '24px' }}>📋</div>
+      <p style={{ color: '#F9FAFB', fontWeight: '600', marginBottom: '4px' }}>
+        Select Verification Outcome
+      </p>
+      <p style={{ color: '#9CA3AF', fontSize: '14px' }}>
+        Choose an outcome from the dropdown above to automatically open the verification form
+      </p>
+    </div>
+  );
+
   const renderFormContent = () => {
     if (caseData.verificationType === VerificationType.Residence) {
       switch (caseData.verificationOutcome) {
-        case VerificationOutcome.Positive:
         case VerificationOutcome.PositiveAndDoorLocked:
           return caseData.residenceReport ? <ResidenceForm caseData={caseData} /> : <p>Loading Residence Form...</p>;
-        case VerificationOutcome.Shifted:
-        case VerificationOutcome.DoorLockedAndShifted:
+        case VerificationOutcome.ShiftedAndDoorLocked:
           return caseData.shiftedResidenceReport ? <ShiftedResidenceForm caseData={caseData} /> : <p>Loading Shifted Residence Form...</p>;
         case VerificationOutcome.NSPAndDoorLocked:
           return caseData.nspResidenceReport ? <NspResidenceForm caseData={caseData} /> : <p>Loading NSP Residence Form...</p>;
@@ -186,17 +216,15 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
         case VerificationOutcome.Untraceable:
             return caseData.untraceableResidenceReport ? <UntraceableResidenceForm caseData={caseData} /> : <p>Loading Untraceable Residence Form...</p>;
         default:
-            return <div className="text-center p-4 my-4 bg-gray-800 rounded-lg"><p className="text-medium-text">Please select a verification outcome to proceed.</p></div>;
+            return renderOutcomeSelectionPrompt();
       }
     }
 
     if (caseData.verificationType === VerificationType.ResidenceCumOffice) {
         switch (caseData.verificationOutcome) {
-            case VerificationOutcome.Positive:
             case VerificationOutcome.PositiveAndDoorLocked:
                 return caseData.resiCumOfficeReport ? <PositiveResiCumOfficeForm caseData={caseData} /> : <p>Loading Resi-cum-Office Form...</p>;
-            case VerificationOutcome.Shifted:
-            case VerificationOutcome.DoorLockedAndShifted:
+            case VerificationOutcome.ShiftedAndDoorLocked:
                 return caseData.shiftedResiCumOfficeReport ? <ShiftedResiCumOfficeForm caseData={caseData} /> : <p>Loading Shifted Resi-cum-Office Form...</p>;
             case VerificationOutcome.NSPAndDoorLocked:
                 return caseData.nspResiCumOfficeReport ? <NspResiCumOfficeForm caseData={caseData} /> : <p>Loading NSP Resi-cum-Office Form...</p>;
@@ -205,17 +233,15 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
             case VerificationOutcome.Untraceable:
                 return caseData.untraceableResiCumOfficeReport ? <UntraceableResiCumOfficeForm caseData={caseData} /> : <p>Loading Untraceable Resi-cum-Office Form...</p>;
             default:
-                return <div className="text-center p-4 my-4 bg-gray-800 rounded-lg"><p className="text-medium-text">Please select a verification outcome to proceed.</p></div>;
+                return renderOutcomeSelectionPrompt();
         }
     }
 
     if (caseData.verificationType === VerificationType.Office) {
         switch (caseData.verificationOutcome) {
-            case VerificationOutcome.Positive:
             case VerificationOutcome.PositiveAndDoorLocked:
                 return caseData.positiveOfficeReport ? <PositiveOfficeForm caseData={caseData} /> : <p>Loading Office Form...</p>;
-            case VerificationOutcome.Shifted:
-            case VerificationOutcome.DoorLockedAndShifted:
+            case VerificationOutcome.ShiftedAndDoorLocked:
                 return caseData.shiftedOfficeReport ? <ShiftedOfficeForm caseData={caseData} /> : <p>Loading Shifted Office Form...</p>;
             case VerificationOutcome.NSPAndDoorLocked:
                 return caseData.nspOfficeReport ? <NspOfficeForm caseData={caseData} /> : <p>Loading NSP Office Form...</p>;
@@ -224,17 +250,15 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
             case VerificationOutcome.Untraceable:
                 return caseData.untraceableOfficeReport ? <UntraceableOfficeForm caseData={caseData} /> : <p>Loading Untraceable Office Form...</p>;
             default:
-                return <div className="text-center p-4 my-4 bg-gray-800 rounded-lg"><p className="text-medium-text">Please select a verification outcome to proceed.</p></div>;
+                return renderOutcomeSelectionPrompt();
         }
     }
 
     if (caseData.verificationType === VerificationType.Business) {
         switch (caseData.verificationOutcome) {
-            case VerificationOutcome.Positive:
             case VerificationOutcome.PositiveAndDoorLocked:
                 return caseData.positiveBusinessReport ? <PositiveBusinessForm caseData={caseData} /> : <p>Loading Business Form...</p>;
-            case VerificationOutcome.Shifted:
-            case VerificationOutcome.DoorLockedAndShifted:
+            case VerificationOutcome.ShiftedAndDoorLocked:
                 return caseData.shiftedBusinessReport ? <ShiftedBusinessForm caseData={caseData} /> : <p>Loading Shifted Business Form...</p>;
             case VerificationOutcome.NSPAndDoorLocked:
                 return caseData.nspBusinessReport ? <NspBusinessForm caseData={caseData} /> : <p>Loading NSP Business Form...</p>;
@@ -243,17 +267,15 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
             case VerificationOutcome.Untraceable:
                 return caseData.untraceableBusinessReport ? <UntraceableBusinessForm caseData={caseData} /> : <p>Loading Untraceable Business Form...</p>;
             default:
-                return <div className="text-center p-4 my-4 bg-gray-800 rounded-lg"><p className="text-medium-text">Please select a verification outcome to proceed.</p></div>;
+                return renderOutcomeSelectionPrompt();
         }
     }
     
     if (caseData.verificationType === VerificationType.Builder) {
         switch (caseData.verificationOutcome) {
-            case VerificationOutcome.Positive:
             case VerificationOutcome.PositiveAndDoorLocked:
                 return caseData.positiveBuilderReport ? <PositiveBuilderForm caseData={caseData} /> : <p>Loading Builder Form...</p>;
-            case VerificationOutcome.Shifted:
-            case VerificationOutcome.DoorLockedAndShifted:
+            case VerificationOutcome.ShiftedAndDoorLocked:
                 return caseData.shiftedBuilderReport ? <ShiftedBuilderForm caseData={caseData} /> : <p>Loading Shifted Builder Form...</p>;
             case VerificationOutcome.NSPAndDoorLocked:
                 return caseData.nspBuilderReport ? <NspBuilderForm caseData={caseData} /> : <p>Loading NSP Builder Form...</p>;
@@ -262,17 +284,15 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
             case VerificationOutcome.Untraceable:
                 return caseData.untraceableBuilderReport ? <UntraceableBuilderForm caseData={caseData} /> : <p>Loading Untraceable Builder Form...</p>;
             default:
-                return <div className="text-center p-4 my-4 bg-gray-800 rounded-lg"><p className="text-medium-text">Please select a verification outcome to proceed.</p></div>;
+                return renderOutcomeSelectionPrompt();
         }
     }
 
     if (caseData.verificationType === VerificationType.NOC) {
         switch (caseData.verificationOutcome) {
-            case VerificationOutcome.Positive:
             case VerificationOutcome.PositiveAndDoorLocked:
                 return caseData.positiveNocReport ? <PositiveNocForm caseData={caseData} /> : <p>Loading NOC Form...</p>;
-            case VerificationOutcome.Shifted:
-            case VerificationOutcome.DoorLockedAndShifted:
+            case VerificationOutcome.ShiftedAndDoorLocked:
                 return caseData.shiftedNocReport ? <ShiftedNocForm caseData={caseData} /> : <p>Loading Shifted NOC Form...</p>;
             case VerificationOutcome.NSPAndDoorLocked:
                 return caseData.nspNocReport ? <NspNocForm caseData={caseData} /> : <p>Loading NSP NOC Form...</p>;
@@ -281,17 +301,15 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
             case VerificationOutcome.Untraceable:
                 return caseData.untraceableNocReport ? <UntraceableNocForm caseData={caseData} /> : <p>Loading Untraceable NOC Form...</p>;
             default:
-                return <div className="text-center p-4 my-4 bg-gray-800 rounded-lg"><p className="text-medium-text">Please select a verification outcome to proceed.</p></div>;
+                return renderOutcomeSelectionPrompt();
         }
     }
 
     if (caseData.verificationType === VerificationType.Connector) {
         switch (caseData.verificationOutcome) {
-            case VerificationOutcome.Positive:
             case VerificationOutcome.PositiveAndDoorLocked:
                 return caseData.positiveDsaReport ? <PositiveDsaForm caseData={caseData} /> : <p>Loading DSA/DST Form...</p>;
-            case VerificationOutcome.Shifted:
-            case VerificationOutcome.DoorLockedAndShifted:
+            case VerificationOutcome.ShiftedAndDoorLocked:
                 return caseData.shiftedDsaReport ? <ShiftedDsaForm caseData={caseData} /> : <p>Loading Shifted DSA/DST Form...</p>;
             case VerificationOutcome.NSPAndDoorLocked:
                 return caseData.nspDsaReport ? <NspDsaForm caseData={caseData} /> : <p>Loading NSP DSA/DST Form...</p>;
@@ -300,14 +318,13 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
             case VerificationOutcome.Untraceable:
                 return caseData.untraceableDsaReport ? <UntraceableDsaForm caseData={caseData} /> : <p>Loading Untraceable DSA/DST Form...</p>;
             default:
-                return <div className="text-center p-4 my-4 bg-gray-800 rounded-lg"><p className="text-medium-text">Please select a verification outcome to proceed.</p></div>;
+                return renderOutcomeSelectionPrompt();
         }
     }
 
     if (caseData.verificationType === VerificationType.PropertyAPF) {
         switch (caseData.verificationOutcome) {
-            case VerificationOutcome.Positive:
-                return caseData.positivePropertyApfReport ? <PositivePropertyApfForm caseData={caseData} /> : <p>Loading Property (APF) Form...</p>;
+            // Note: PropertyAPF no longer has Positive outcome, only NSP, ERT, and Untraceable
             case VerificationOutcome.NSPAndDoorLocked:
                 return caseData.nspPropertyApfReport ? <NspPropertyApfForm caseData={caseData} /> : <p>Loading NSP Property (APF) Form...</p>;
             case VerificationOutcome.ERT:
@@ -315,13 +332,12 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
             case VerificationOutcome.Untraceable:
                 return caseData.untraceablePropertyApfReport ? <UntraceablePropertyApfForm caseData={caseData} /> : <p>Loading Untraceable Property (APF) Form...</p>;
             default:
-                return <div className="text-center p-4 my-4 bg-gray-800 rounded-lg"><p className="text-medium-text">Please select a verification outcome to proceed.</p></div>;
+                return renderOutcomeSelectionPrompt();
         }
     }
 
     if (caseData.verificationType === VerificationType.PropertyIndividual) {
         switch (caseData.verificationOutcome) {
-            case VerificationOutcome.Positive:
             case VerificationOutcome.PositiveAndDoorLocked:
                 return caseData.positivePropertyIndividualReport ? <PositivePropertyIndividualForm caseData={caseData} /> : <p>Loading Property (Individual) Form...</p>;
             case VerificationOutcome.NSPAndDoorLocked:
@@ -331,7 +347,7 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
             case VerificationOutcome.Untraceable:
                 return caseData.untraceablePropertyIndividualReport ? <UntraceablePropertyIndividualForm caseData={caseData} /> : <p>Loading Untraceable Property (Individual) Form...</p>;
             default:
-                return <div className="text-center p-4 my-4 bg-gray-800 rounded-lg"><p className="text-medium-text">Please select a verification outcome to proceed.</p></div>;
+                return renderOutcomeSelectionPrompt();
         }
     }
 
@@ -375,7 +391,22 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
                   </SelectField>
               </div>
           )}
-          {renderFormContent()}
+          <div ref={formContentRef}>
+            {isFormExpanding ? (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: '20px',
+                color: '#9CA3AF'
+              }}>
+                <Spinner size="small" />
+                <span style={{ marginLeft: '8px', fontSize: '14px' }}>Opening form...</span>
+              </div>
+            ) : (
+              renderFormContent()
+            )}
+          </div>
       </div>
 
       <div className="mt-4 pt-4 border-t border-dark-border">
@@ -443,9 +474,9 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
               <button onClick={() => setIsExpanded(!isExpanded)} className="flex items-center text-medium-text p-2 rounded-md hover:bg-white/10">
                   {isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
                   <span className="text-xs ml-1">
-                      {isExpanded 
-                          ? 'Hide Report' 
-                          : (caseData.status === CaseStatus.Completed || caseData.isSaved) ? 'Show Details' : 'Fill Report'
+                      {isExpanded
+                          ? 'Hide Details'
+                          : (caseData.status === CaseStatus.Completed || caseData.isSaved) ? 'Show Details' : 'Select Outcome'
                       }
                   </span>
               </button>

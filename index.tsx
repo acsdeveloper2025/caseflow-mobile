@@ -1,12 +1,8 @@
-import 'nativewind/style';
+import './index.css';
 import React from 'react';
-import { AppRegistry } from 'react-native';
+import { createRoot } from 'react-dom/client';
 import App from './App';
 
-const appName = 'CaseFlowMobile';
-
-AppRegistry.registerComponent(appName, () => App);
-
-AppRegistry.runApplication(appName, {
-  rootTag: document.getElementById('root'),
-});
+const container = document.getElementById('root');
+const root = createRoot(container!);
+root.render(<App />);

@@ -1,11 +1,6 @@
 import React, { ReactNode } from 'react';
 import { View, Text, TouchableOpacity, Modal as RNModal, SafeAreaView } from 'react-native';
-import { styled } from 'nativewind';
 
-const StyledView = styled(View);
-const StyledText = styled(Text);
-const StyledTouchableOpacity = styled(TouchableOpacity);
-const StyledSafeAreaView = styled(SafeAreaView);
 
 interface ModalProps {
   isVisible: boolean;
@@ -22,21 +17,43 @@ const Modal: React.FC<ModalProps> = ({ isVisible, onClose, title, children }) =>
       visible={isVisible}
       onRequestClose={onClose}
     >
-      <StyledView className="flex-1 justify-center items-center bg-black/70 p-4">
-        <StyledSafeAreaView className="w-full max-w-lg">
-            <StyledView className="bg-dark-card rounded-lg shadow-2xl p-6">
-                <StyledView className="flex-row justify-between items-center mb-4 pb-2 border-b border-dark-border">
-                    <StyledText className="text-xl font-bold text-light-text">{title}</StyledText>
-                    <StyledTouchableOpacity onPress={onClose} className="p-1">
-                        <StyledText className="text-medium-text text-2xl">&times;</StyledText>
-                    </StyledTouchableOpacity>
-                </StyledView>
-                <StyledView>
+      <View style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        padding: 16
+      }}>
+        <SafeAreaView style={{ width: '100%', maxWidth: 500 }}>
+            <View style={{
+              backgroundColor: '#1F2937',
+              borderRadius: 8,
+              padding: 24,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8
+            }}>
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 16,
+                  paddingBottom: 8,
+                  borderBottomWidth: 1,
+                  borderBottomColor: '#374151'
+                }}>
+                    <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#F9FAFB' }}>{title}</Text>
+                    <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
+                        <Text style={{ color: '#9CA3AF', fontSize: 24 }}>&times;</Text>
+                    </TouchableOpacity>
+                </View>
+                <View>
                     {children}
-                </StyledView>
-            </StyledView>
-        </StyledSafeAreaView>
-      </StyledView>
+                </View>
+            </View>
+        </SafeAreaView>
+      </View>
     </RNModal>
   );
 };

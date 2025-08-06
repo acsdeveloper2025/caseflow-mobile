@@ -1,11 +1,7 @@
 import React, { ReactNode } from 'react';
 import Modal from './Modal';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { styled } from 'nativewind';
 
-const StyledView = styled(View);
-const StyledText = styled(Text);
-const StyledTouchableOpacity = styled(TouchableOpacity);
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -30,23 +26,23 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 }) => {
   return (
     <Modal isVisible={isOpen} onClose={onClose} title={title}>
-      <StyledView className="space-y-4">
+      <View style={{ gap: 16 }}>
         {children}
-        <StyledView className="flex-row justify-end gap-4 mt-6">
-          <StyledTouchableOpacity
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 16, marginTop: 24 }}>
+          <TouchableOpacity
             onPress={onSave}
-            className="px-4 py-2 rounded-md bg-purple-600 active:bg-purple-500"
+            style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, backgroundColor: '#7C3AED' }}
           >
-            <StyledText className="text-white font-semibold">{saveText}</StyledText>
-          </StyledTouchableOpacity>
-          <StyledTouchableOpacity
+            <Text style={{ color: 'white', fontWeight: '600' }}>{saveText}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={onConfirm}
-            className="px-4 py-2 rounded-md bg-brand-primary active:bg-brand-secondary"
+            style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, backgroundColor: '#00a950' }}
           >
-            <StyledText className="text-white font-semibold">{confirmText}</StyledText>
-          </StyledTouchableOpacity>
-        </StyledView>
-      </StyledView>
+            <Text style={{ color: 'white', fontWeight: '600' }}>{confirmText}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </Modal>
   );
 };

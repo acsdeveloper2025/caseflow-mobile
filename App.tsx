@@ -1,26 +1,27 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CaseProvider } from './context/CaseContext';
 import LoginScreen from './screens/LoginScreen';
-import BottomTabNavigator from './components/BottomNav';
-import { View, ActivityIndicator, StatusBar } from 'react-native';
-import { styled } from 'nativewind';
-
-const StyledView = styled(View);
-const Stack = createNativeStackNavigator();
+import DashboardScreen from './screens/DashboardScreen';
+import CaseListScreen from './screens/CaseListScreen';
+import AssignedCasesScreen from './screens/AssignedCasesScreen';
+import InProgressCasesScreen from './screens/InProgressCasesScreen';
+import CompletedCasesScreen from './screens/CompletedCasesScreen';
+import SavedCasesScreen from './screens/SavedCasesScreen';
+import ProfileScreen from './screens/ProfileScreen';
+import BottomNavigation from './components/BottomNavigation';
+import { View } from 'react-native';
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <CaseProvider>
-        <NavigationContainer>
-           <StatusBar barStyle="light-content" />
-           <AppNavigator />
-        </NavigationContainer>
-      </CaseProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <CaseProvider>
+          <AppNavigator />
+        </CaseProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 };
 
@@ -29,20 +30,41 @@ const AppNavigator: React.FC = () => {
 
   if (isLoading) {
     return (
-      <StyledView className="flex-1 items-center justify-center bg-dark-bg">
-        <ActivityIndicator size="large" color="#00a950" />
-      </StyledView>
+      <View style={{
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#111827',
+        height: '100vh'
+      }}>
+        <div style={{ color: '#00a950', fontSize: '18px' }}>Loading...</div>
+      </View>
     );
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {isAuthenticated ? (
-        <Stack.Screen name="Main" component={BottomTabNavigator} />
-      ) : (
-        <Stack.Screen name="Login" component={LoginScreen} />
-      )}
-    </Stack.Navigator>
+    <>
+      <Routes>
+        {isAuthenticated ? (
+          <>
+            <Route path="/" element={<DashboardScreen />} />
+            <Route path="/cases" element={<CaseListScreen title="All Cases" filter={() => true} emptyMessage="No cases available." />} />
+            <Route path="/cases/assigned" element={<AssignedCasesScreen />} />
+            <Route path="/cases/in-progress" element={<InProgressCasesScreen />} />
+            <Route path="/cases/completed" element={<CompletedCasesScreen />} />
+            <Route path="/cases/saved" element={<SavedCasesScreen />} />
+            <Route path="/profile" element={<ProfileScreen />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </>
+        ) : (
+          <>
+            <Route path="/login" element={<LoginScreen />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </>
+        )}
+      </Routes>
+      {isAuthenticated && <BottomNavigation />}
+    </>
   );
 };
 

@@ -39,33 +39,72 @@ const ProfileScreen: React.FC = () => {
   }, [idCardRef, user, updateUserProfile]);
 
   return (
-    <div className="p-4 pt-8">
-      <div className="flex flex-col items-center">
-        <div className="relative w-32 h-32 rounded-full bg-dark-card border-4 border-dark-border mb-4">
+    <div style={{ padding: '16px', paddingTop: '32px', paddingBottom: '100px', backgroundColor: '#111827', minHeight: '100vh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{
+          position: 'relative',
+          width: '128px',
+          height: '128px',
+          borderRadius: '64px',
+          backgroundColor: '#1F2937',
+          border: '4px solid #374151',
+          marginBottom: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
           {user?.profilePhotoUrl ? (
-            <img src={user.profilePhotoUrl} alt="Profile" className="w-full h-full rounded-full object-cover" />
+            <img
+              src={user.profilePhotoUrl}
+              alt="Profile"
+              style={{ width: '120px', height: '120px', borderRadius: '60px', objectFit: 'cover' }}
+            />
           ) : (
-            <div className="flex items-center justify-center h-full">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
               <UserIcon />
             </div>
           )}
-           <button 
-                onClick={() => setIsPhotoModalOpen(true)}
-                className="absolute bottom-0 right-0 p-2 bg-brand-primary rounded-full text-white hover:bg-brand-secondary transition-colors"
-                aria-label="Change Profile Photo"
-            >
-                <CameraIcon width={20} height={20} />
-            </button>
+          <button
+            onClick={() => setIsPhotoModalOpen(true)}
+            style={{
+              position: 'absolute',
+              bottom: '0',
+              right: '0',
+              padding: '8px',
+              backgroundColor: '#00a950',
+              borderRadius: '20px',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <CameraIcon width={20} height={20} color="white" />
+          </button>
         </div>
-        <h1 className="text-2xl font-bold text-light-text">{user?.name}</h1>
-        <p className="text-medium-text">Agent ID: {user?.id}</p>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#F9FAFB', margin: '0' }}>{user?.name}</h1>
+        <p style={{ color: '#9CA3AF', margin: '8px 0 0 0' }}>Agent ID: {user?.id}</p>
       </div>
 
-      <div className="mt-8 space-y-4">
+      <div style={{ marginTop: '32px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <button
           onClick={handleGenerateIdCard}
           disabled={isGenerating || !user?.profilePhotoUrl}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed"
+          style={{
+            width: '100%',
+            backgroundColor: isGenerating || !user?.profilePhotoUrl ? '#6B7280' : '#2563EB',
+            color: 'white',
+            fontWeight: '600',
+            padding: '12px 16px',
+            borderRadius: '6px',
+            border: 'none',
+            cursor: isGenerating || !user?.profilePhotoUrl ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
         >
           {isGenerating ? <Spinner size="small" /> : <IdCardIcon />}
           <span>{isGenerating ? "Generating..." : "Generate Digital ID Card"}</span>
@@ -74,7 +113,20 @@ const ProfileScreen: React.FC = () => {
         {user?.idCardUrl && (
              <button
                 onClick={() => setIsIdCardModalOpen(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-md bg-gray-600 hover:bg-gray-500 text-white transition-colors"
+                style={{
+                  width: '100%',
+                  backgroundColor: '#6B7280',
+                  color: 'white',
+                  fontWeight: '600',
+                  padding: '12px 16px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
             >
                 <IdCardIcon />
                 <span>View My ID Card</span>
@@ -83,7 +135,20 @@ const ProfileScreen: React.FC = () => {
 
         <button
           onClick={logout}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-md bg-red-600 hover:bg-red-500 text-white transition-colors"
+          style={{
+            width: '100%',
+            backgroundColor: '#DC2626',
+            color: 'white',
+            fontWeight: '600',
+            padding: '12px 16px',
+            borderRadius: '6px',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
         >
           <LogOutIcon />
           <span>Logout</span>

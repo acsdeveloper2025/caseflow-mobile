@@ -1,14 +1,11 @@
 import React, { useMemo } from 'react';
-import { View, Text, FlatList, ActivityIndicator, SafeAreaView, FlatListProps } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, SafeAreaView, FlatListProps, TouchableOpacity } from 'react-native';
+import { useNavigate } from 'react-router-dom';
 import { Case } from '../types';
 import { useCases } from '../context/CaseContext';
 import CaseCard from '../components/CaseCard';
-import { styled } from 'nativewind';
 
-const StyledView = styled(View);
-const StyledText = styled(Text);
-const StyledSafeAreaView = styled(SafeAreaView);
-const StyledFlatList = styled(FlatList) as React.ComponentType<FlatListProps<any> & { className?: string }>;
+
 
 
 interface CaseListScreenProps {
@@ -21,6 +18,7 @@ interface CaseListScreenProps {
 
 const CaseListScreen: React.FC<CaseListScreenProps> = ({ title, filter, emptyMessage, sort, isReorderable = false }) => {
   const { cases, loading } = useCases();
+  const navigate = useNavigate();
   
   const processedCases = useMemo(() => {
     let filtered = cases.filter(filter);
@@ -31,33 +29,48 @@ const CaseListScreen: React.FC<CaseListScreenProps> = ({ title, filter, emptyMes
   }, [cases, filter, sort]);
 
   const renderEmpty = () => (
-    <StyledView className="flex-1 justify-center items-center mt-10 px-4">
-      <StyledText className="text-medium-text text-center">{emptyMessage}</StyledText>
-    </StyledView>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 40, paddingHorizontal: 16 }}>
+      <Text style={{ color: '#9CA3AF', textAlign: 'center' }}>{emptyMessage}</Text>
+    </View>
   );
 
   const renderHeader = () => (
-     <StyledText className="text-2xl font-bold text-light-text px-4 mb-4 pt-5">{title}</StyledText>
+    <View style={{ paddingHorizontal: 16, paddingTop: 20, marginBottom: 16 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+        <TouchableOpacity
+          onPress={() => navigate('/')}
+          style={{
+            marginRight: 16,
+            padding: 8,
+            borderRadius: 20,
+            backgroundColor: '#374151'
+          }}
+        >
+          <Text style={{ color: '#F9FAFB', fontSize: 18, fontWeight: 'bold' }}>←</Text>
+        </TouchableOpacity>
+        <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#F9FAFB', flex: 1 }}>{title}</Text>
+      </View>
+    </View>
   );
 
   if (loading) {
     return (
-      <StyledSafeAreaView className="flex-1 bg-dark-bg">
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#111827' }}>
         {renderHeader()}
-        <StyledView className="flex-1 justify-center items-center">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#00a950" />
-        </StyledView>
-      </StyledSafeAreaView>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <StyledSafeAreaView className="flex-1 bg-dark-bg">
-      <StyledFlatList
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#111827' }}>
+      <FlatList
         data={processedCases}
         renderItem={({ item, index }: { item: Case, index: number }) => (
-          <CaseCard 
-            caseData={item} 
+          <CaseCard
+            caseData={item}
             isReorderable={isReorderable}
             isFirst={index === 0}
             isLast={index === processedCases.length - 1}
@@ -66,10 +79,9 @@ const CaseListScreen: React.FC<CaseListScreenProps> = ({ title, filter, emptyMes
         keyExtractor={(item: Case) => item.id}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmpty}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        className="pt-5"
+        contentContainerStyle={{ paddingBottom: 100, paddingTop: 20 }}
       />
-    </StyledSafeAreaView>
+    </SafeAreaView>
   );
 };
 

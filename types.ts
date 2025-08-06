@@ -18,12 +18,9 @@ export enum VerificationType {
 }
 
 export enum VerificationOutcome {
-  Positive = 'Positive',
-  Negative = 'Negative',
   PositiveAndDoorLocked = 'Positive & Door Locked',
-  Shifted = 'Shifted',
-  DoorLockedAndShifted = 'Door Locked & Shifted',
-  NSPAndDoorLocked = 'NSP & Door Locked',
+  ShiftedAndDoorLocked = 'Shifted & Door Lock',
+  NSPAndDoorLocked = 'NSP & Door Lock',
   ERT = 'ERT',
   Untraceable = 'Untraceable',
 }

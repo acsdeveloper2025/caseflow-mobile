@@ -1,5 +1,6 @@
 import { Case, CaseStatus, VerificationType } from '../types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../polyfills/AsyncStorage';
+import { migrateCasesVerificationOutcomes, isDeprecatedOutcome } from '../utils/verificationOutcomeMigration';
 
 const LOCAL_STORAGE_KEY = 'caseflow_cases';
 
@@ -214,7 +215,22 @@ class CaseService {
   }
 
   async getCases(): Promise<Case[]> {
-    return this.readFromStorage();
+    const cases = await this.readFromStorage();
+
+    // Apply verification outcome migration for any deprecated outcomes
+    const migratedCases = migrateCasesVerificationOutcomes(cases);
+
+    // If any cases were migrated, save the updated data
+    const hasMigrations = migratedCases.some((migratedCase, index) =>
+      migratedCase.verificationOutcome !== cases[index].verificationOutcome
+    );
+
+    if (hasMigrations) {
+      console.log('Verification outcome migrations applied, saving updated cases...');
+      await this.writeToStorage(migratedCases);
+    }
+
+    return migratedCases;
   }
 
   async getCase(id: string): Promise<Case | undefined> {

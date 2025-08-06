@@ -3,15 +3,8 @@ import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, ActivityIndicat
 import { useCases } from '../context/CaseContext';
 import { useAuth } from '../context/AuthContext';
 import { CaseStatus } from '../types';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigate } from 'react-router-dom';
 import { RefreshCwIcon, UserIcon } from '../components/Icons';
-import { styled } from 'nativewind';
-
-const StyledView = styled(View);
-const StyledText = styled(Text);
-const StyledTouchableOpacity = styled(TouchableOpacity);
-const StyledSafeAreaView = styled(SafeAreaView);
-const StyledImage = styled(Image);
 
 
 interface StatCardProps {
@@ -22,19 +15,49 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ title, count, color, path }) => {
-    const navigation = useNavigation<any>();
+    const navigate = useNavigate();
+
+    // Map the path to the correct route
+    const getRoute = (path: string) => {
+        switch (path) {
+            case 'Assigned':
+                return '/cases/assigned';
+            case 'In Progress':
+                return '/cases/in-progress';
+            case 'Completed':
+                return '/cases/completed';
+            case 'Saved':
+                return '/cases/saved';
+            default:
+                return '/cases';
+        }
+    };
+
     return (
-        <StyledTouchableOpacity onPress={() => navigation.navigate(path)} className={`bg-dark-card p-4 rounded-lg shadow-lg flex-1 active:bg-gray-700 ${color}`}>
-            <StyledText className="text-medium-text text-sm font-bold uppercase">{title}</StyledText>
-            <StyledText className="text-light-text text-3xl font-semibold mt-2">{count}</StyledText>
-        </StyledTouchableOpacity>
+        <TouchableOpacity
+            onPress={() => navigate(getRoute(path))}
+            style={{
+                backgroundColor: '#1F2937',
+                padding: 16,
+                borderRadius: 8,
+                flex: 1,
+                marginHorizontal: 4,
+                borderTopWidth: 4,
+                borderTopColor: color === 'border-t-4 border-blue-500' ? '#3B82F6' :
+                               color === 'border-t-4 border-yellow-500' ? '#F59E0B' :
+                               color === 'border-t-4 border-green-500' ? '#10B981' : '#8B5CF6'
+            }}
+        >
+            <Text style={{ color: '#9CA3AF', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase' }}>{title}</Text>
+            <Text style={{ color: '#F9FAFB', fontSize: 24, fontWeight: '600', marginTop: 8 }}>{count}</Text>
+        </TouchableOpacity>
     );
 };
 
 const DashboardScreen: React.FC = () => {
   const { cases, loading, syncing, syncCases } = useCases();
   const { user } = useAuth();
-  const navigation = useNavigation<any>();
+  const navigate = useNavigate();
   
   const assignedCount = cases.filter(c => c.status === CaseStatus.Assigned).length;
   const inProgressCount = cases.filter(c => c.status === CaseStatus.InProgress).length;
@@ -42,58 +65,79 @@ const DashboardScreen: React.FC = () => {
   const savedCount = cases.filter(c => c.isSaved).length;
 
   return (
-    <StyledSafeAreaView className="flex-1 bg-dark-bg">
-      <ScrollView>
-        <StyledView className="p-4 flex-row justify-between items-center">
-          <StyledView>
-              <StyledText className="text-2xl font-bold text-light-text">Welcome, {user?.name || 'Agent'}!</StyledText>
-              <StyledText className="text-medium-text">Here is your daily summary.</StyledText>
-          </StyledView>
-          <StyledTouchableOpacity onPress={() => navigation.navigate('Profile')} className="w-12 h-12 rounded-full bg-dark-card border-2 border-dark-border items-center justify-center">
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#111827' }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+        <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View>
+              <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#F9FAFB' }}>Welcome, {user?.name || 'Agent'}!</Text>
+              <Text style={{ color: '#9CA3AF' }}>Here is your daily summary.</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => navigate('/profile')}
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: '#1F2937',
+              borderWidth: 2,
+              borderColor: '#374151',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
               {user?.profilePhotoUrl ? (
-                  <StyledImage source={{uri: user.profilePhotoUrl}} className="w-full h-full rounded-full" />
+                  <Image source={{uri: user.profilePhotoUrl}} style={{ width: 44, height: 44, borderRadius: 22 }} />
               ) : (
                   <UserIcon color="#f9fafb" />
               )}
-          </StyledTouchableOpacity>
-        </StyledView>
+          </TouchableOpacity>
+        </View>
 
         {loading ? (
-          <StyledView className="flex-1 justify-center items-center mt-10">
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 40 }}>
               <ActivityIndicator size="large" color="#00a950" />
-          </StyledView>
+          </View>
         ) : (
         <>
-          <StyledView className="px-4 mt-4">
-              <StyledTouchableOpacity
+          <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
+              <TouchableOpacity
                   onPress={syncCases}
                   disabled={syncing}
-                  className="w-full bg-brand-primary active:bg-brand-secondary text-white font-bold py-3 px-4 rounded-lg flex-row items-center justify-center disabled:bg-gray-600"
+                  style={{
+                    width: '100%',
+                    backgroundColor: syncing ? '#6B7280' : '#00a950',
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    borderRadius: 8,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
               >
                   <RefreshCwIcon color="white" />
-                  <StyledText className="ml-2 text-white font-bold">{syncing ? 'Syncing...' : 'Sync with Server'}</StyledText>
-              </StyledTouchableOpacity>
-          </StyledView>
+                  <Text style={{ marginLeft: 8, color: 'white', fontWeight: 'bold' }}>{syncing ? 'Syncing...' : 'Sync with Server'}</Text>
+              </TouchableOpacity>
+          </View>
 
-          <StyledView className="p-4 mt-4">
-            <StyledView className="flex-row gap-4">
+          <View style={{ padding: 16, marginTop: 16 }}>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
               <StatCard title="Assigned" count={assignedCount} color="border-t-4 border-blue-500" path="Assigned"/>
               <StatCard title="In Progress" count={inProgressCount} color="border-t-4 border-yellow-500" path="In Progress" />
-            </StyledView>
-            <StyledView className="flex-row gap-4 mt-4">
+            </View>
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
               <StatCard title="Completed" count={completedCount} color="border-t-4 border-green-500" path="Completed"/>
               <StatCard title="Saved" count={savedCount} color="border-t-4 border-purple-500" path="Saved" />
-            </StyledView>
-          </StyledView>
-          
-          <StyledView className="px-4 mt-6">
-              <StyledText className="text-xl font-bold text-light-text mb-2">Recent Activity</StyledText>
-              <StyledText className="text-medium-text">Sync to get the latest updates from the server.</StyledText>
-          </StyledView>
+            </View>
+          </View>
+
+          <View style={{ paddingHorizontal: 16, marginTop: 24 }}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#F9FAFB', marginBottom: 8 }}>Recent Activity</Text>
+              <Text style={{ color: '#9CA3AF' }}>Sync to get the latest updates from the server.</Text>
+          </View>
         </>
         )}
       </ScrollView>
-    </StyledSafeAreaView>
+    </SafeAreaView>
   );
 };
 

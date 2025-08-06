@@ -1,21 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, SafeAreaView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { styled } from 'nativewind';
 import { useAuth } from '../context/AuthContext';
 import Spinner from '../components/Spinner';
 import { InfoIcon, ClipboardIcon } from '../components/Icons';
 import Modal from '../components/Modal';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Clipboard from 'expo-clipboard';
+import AsyncStorage from '../polyfills/AsyncStorage';
+import * as Clipboard from '../polyfills/Clipboard';
 
 
-const StyledView = styled(View);
-const StyledText = styled(Text);
-const StyledTextInput = styled(TextInput);
-const StyledTouchableOpacity = styled(TouchableOpacity);
-const StyledImage = styled(Image);
-const StyledSafeAreaView = styled(SafeAreaView);
-const StyledKeyboardAvoidingView = styled(KeyboardAvoidingView);
+
+
+
 
 const logoBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAHSAyIDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1VZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/aAAwDAQACEQMRAD8A+qaKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigA-/9k=";
 
@@ -54,22 +49,42 @@ const LoginScreen: React.FC = () => {
 
   return (
     <>
-      <StyledSafeAreaView className="flex-1 bg-dark-bg">
-        <StyledKeyboardAvoidingView 
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#111827' }}>
+        <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1 justify-center p-4"
+          style={{ flex: 1, justifyContent: 'center', padding: 16 }}
         >
-          <StyledView className="w-full max-w-sm mx-auto">
-            <StyledView className="items-center mb-8">
-              <StyledImage source={{ uri: logoBase64 }} className="w-48 h-24" resizeMode="contain" />
-              <StyledText className="text-medium-text mt-4">Your mobile workspace</StyledText>
-            </StyledView>
+          <View style={{ width: '100%', maxWidth: 400, marginHorizontal: 'auto' }}>
+            <View style={{ alignItems: 'center', marginBottom: 32 }}>
+              <Image source={{ uri: logoBase64 }} style={{ width: 192, height: 96 }} resizeMode="contain" />
+              <Text style={{ color: '#9CA3AF', marginTop: 16 }}>Your mobile workspace</Text>
+            </View>
             
-            <StyledView className="bg-dark-card shadow-2xl rounded-lg px-8 pt-6 pb-8 mb-4">
-              <StyledView className="mb-4">
-                <StyledText className="text-medium-text text-sm font-bold mb-2">Username</StyledText>
-                <StyledTextInput
-                  className="shadow appearance-none border border-dark-border rounded w-full py-3 px-4 bg-gray-700 text-light-text leading-tight"
+            <View style={{
+              backgroundColor: '#1F2937',
+              borderRadius: 8,
+              paddingHorizontal: 32,
+              paddingTop: 24,
+              paddingBottom: 32,
+              marginBottom: 16,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8
+            }}>
+              <View style={{ marginBottom: 16 }}>
+                <Text style={{ color: '#9CA3AF', fontSize: 14, fontWeight: 'bold', marginBottom: 8 }}>Username</Text>
+                <TextInput
+                  style={{
+                    borderWidth: 1,
+                    borderColor: '#374151',
+                    borderRadius: 4,
+                    width: '100%',
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    backgroundColor: '#374151',
+                    color: '#F9FAFB'
+                  }}
                   placeholder="Username"
                   placeholderTextColor="#9ca3af"
                   value={username}
@@ -77,11 +92,21 @@ const LoginScreen: React.FC = () => {
                   editable={!isLoading}
                   autoCapitalize="none"
                 />
-              </StyledView>
-              <StyledView className="mb-6">
-                <StyledText className="text-medium-text text-sm font-bold mb-2">Password</StyledText>
-                <StyledTextInput
-                  className="shadow appearance-none border border-dark-border rounded w-full py-3 px-4 bg-gray-700 text-light-text mb-3 leading-tight"
+              </View>
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{ color: '#9CA3AF', fontSize: 14, fontWeight: 'bold', marginBottom: 8 }}>Password</Text>
+                <TextInput
+                  style={{
+                    borderWidth: 1,
+                    borderColor: '#374151',
+                    borderRadius: 4,
+                    width: '100%',
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    backgroundColor: '#374151',
+                    color: '#F9FAFB',
+                    marginBottom: 12
+                  }}
                   placeholder="******************"
                   placeholderTextColor="#9ca3af"
                   value={password}
@@ -89,55 +114,77 @@ const LoginScreen: React.FC = () => {
                   editable={!isLoading}
                   secureTextEntry
                 />
-              </StyledView>
-              
-              <StyledTouchableOpacity
-                className="bg-brand-primary hover:bg-brand-secondary text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline w-full flex items-center justify-center disabled:bg-gray-500"
+              </View>
+
+              <TouchableOpacity
+                style={{
+                  backgroundColor: isLoading ? '#6B7280' : '#00a950',
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  borderRadius: 4,
+                  width: '100%',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
                 onPress={handleLogin}
                 disabled={isLoading}
               >
-                {isLoading ? <Spinner size="small" /> : <StyledText className="text-white font-bold">Sign In</StyledText>}
-              </StyledTouchableOpacity>
-            </StyledView>
+                {isLoading ? <Spinner size="small" /> : <Text style={{ color: 'white', fontWeight: 'bold' }}>Sign In</Text>}
+              </TouchableOpacity>
+            </View>
 
-            <StyledView className="items-center mt-4">
-              <StyledTouchableOpacity
+            <View style={{ alignItems: 'center', marginTop: 16 }}>
+              <TouchableOpacity
                   onPress={handleShowDeviceId}
-                  className="p-2 rounded-full hover:bg-dark-card"
+                  style={{ padding: 8, borderRadius: 20 }}
               >
                   <InfoIcon color="#9ca3af" />
-              </StyledTouchableOpacity>
-            </StyledView>
-            
-            <StyledText className="text-center text-medium-text text-xs mt-2">
+              </TouchableOpacity>
+            </View>
+
+            <Text style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 12, marginTop: 8 }}>
               &copy;2024 All Check Services LLP. All rights reserved.
-            </StyledText>
-          </StyledView>
-        </StyledKeyboardAvoidingView>
-      </StyledSafeAreaView>
+            </Text>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
 
       <Modal isVisible={isIdModalOpen} onClose={() => setIsIdModalOpen(false)} title="Unique Device ID">
-        <StyledView className="space-y-4">
-            <StyledText className="text-sm text-medium-text">This is your unique identifier for this application on this device. Please provide this ID if you need support.</StyledText>
-            <StyledView className="bg-dark-bg p-3 rounded-md border border-dark-border">
-                <StyledText className="font-mono text-center text-light-text">{deviceId}</StyledText>
-            </StyledView>
-            <StyledView className="flex-row justify-end gap-4 mt-2">
-                 <StyledTouchableOpacity
+        <View style={{ gap: 16 }}>
+            <Text style={{ fontSize: 14, color: '#9CA3AF' }}>This is your unique identifier for this application on this device. Please provide this ID if you need support.</Text>
+            <View style={{
+              backgroundColor: '#111827',
+              padding: 12,
+              borderRadius: 6,
+              borderWidth: 1,
+              borderColor: '#374151'
+            }}>
+                <Text style={{ fontFamily: 'monospace', textAlign: 'center', color: '#F9FAFB' }}>{deviceId}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 16, marginTop: 8 }}>
+                 <TouchableOpacity
                     onPress={() => setIsIdModalOpen(false)}
-                    className="px-4 py-2 rounded-md bg-gray-600"
+                    style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, backgroundColor: '#6B7280' }}
                 >
-                    <StyledText className="text-light-text font-semibold">Close</StyledText>
-                </StyledTouchableOpacity>
-                <StyledTouchableOpacity
+                    <Text style={{ color: '#F9FAFB', fontWeight: '600' }}>Close</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
                     onPress={handleCopyId}
-                    className="flex-row items-center gap-2 px-4 py-2 rounded-md bg-brand-primary"
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                      paddingHorizontal: 16,
+                      paddingVertical: 8,
+                      borderRadius: 6,
+                      backgroundColor: '#00a950'
+                    }}
                 >
                     <ClipboardIcon color="white" />
-                    <StyledText className="text-white font-semibold">{copySuccess ? 'Copied!' : 'Copy ID'}</StyledText>
-                </StyledTouchableOpacity>
-            </StyledView>
-        </StyledView>
+                    <Text style={{ color: 'white', fontWeight: '600' }}>{copySuccess ? 'Copied!' : 'Copy ID'}</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
       </Modal>
     </>
   );
