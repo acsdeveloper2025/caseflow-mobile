@@ -40,20 +40,31 @@ const NspOfficeForm: React.FC<NspOfficeFormProps> = ({ caseData }) => {
 
     const baseFields: (keyof NspOfficeReportData)[] = [
         'addressLocatable', 'addressRating', 'officeStatus', 'locality', 'addressStructure', 'addressStructureColor',
-        'doorColor', 'landmark1', 'landmark2', 'dominatedArea', 'feedbackFromNeighbour', 'otherObservation', 'finalStatus'
+        'doorColor', 'landmark1', 'landmark2', 'dominatedArea', 'feedbackFromNeighbour', 'otherObservation', 'finalStatus',
+        // Always required fields regardless of office status
+        'officeExistence', 'companyNamePlateStatus'
     ];
     if (!checkFields(baseFields)) return false;
 
-    if (report.officeStatus === OfficeStatusOffice.Opened) {
-        const openedFields: (keyof NspOfficeReportData)[] = [
-            'officeExistence', 'currentCompanyName', 'metPerson', 'designation', 'companyNamePlateStatus',
-            'tpcMetPerson1', 'nameOfTpc1', 'tpcConfirmation1', 'tpcMetPerson2', 'nameOfTpc2', 'tpcConfirmation2'
-        ];
-        if (!checkFields(openedFields)) return false;
+    // Always required TPC validations (regardless of office status)
+    if (report.tpcMetPerson1) {
+        if (!report.nameOfTpc1 || report.nameOfTpc1.trim() === '' || !report.tpcConfirmation1) return false;
+    }
+    if (report.tpcMetPerson2) {
+        if (!report.nameOfTpc2 || report.nameOfTpc2.trim() === '' || !report.tpcConfirmation2) return false;
+    }
 
-        if (report.companyNamePlateStatus === SightStatus.Sighted) {
-            if (!report.nameOnBoard || report.nameOnBoard.trim() === '') return false;
-        }
+    // Always required Company Name Plate validation
+    if (report.companyNamePlateStatus === SightStatus.Sighted) {
+        if (!report.nameOnBoard || report.nameOnBoard.trim() === '') return false;
+    }
+
+    // Conditional validation - only when office is open
+    if (report.officeStatus === OfficeStatusOffice.Opened) {
+        const openedOnlyFields: (keyof NspOfficeReportData)[] = [
+            'currentCompanyName', 'metPerson', 'designation'
+        ];
+        if (!checkFields(openedOnlyFields)) return false;
     }
 
     if (report.finalStatus === FinalStatusShiftedOffice.Hold) {
@@ -117,34 +128,66 @@ const NspOfficeForm: React.FC<NspOfficeFormProps> = ({ caseData }) => {
         <SelectField label="Office Status" id="officeStatus" name="officeStatus" value={report.officeStatus || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.officeStatus}</SelectField>
       </div>
 
+      {/* Always Visible Company Details Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Company Details</h4>
+
+        {/* Office Existence - Always visible */}
+        <SelectField label="Office Existance" id="officeExistence" name="officeExistence" value={report.officeExistence || ''} onChange={handleChange} disabled={isReadOnly}>
+          <option value="">Select...</option>
+          {options.officeExistence}
+        </SelectField>
+
+        {/* Company Name Plate - Always visible */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SelectField label="Company Name Plate" id="companyNamePlateStatus" name="companyNamePlateStatus" value={report.companyNamePlateStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.sightStatus}
+          </SelectField>
+          {report.companyNamePlateStatus === SightStatus.Sighted && (
+            <FormField label="Name on Board" id="nameOnBoard" name="nameOnBoard" value={report.nameOnBoard} onChange={handleChange} disabled={isReadOnly} className="border-red-500" />
+          )}
+        </div>
+      </div>
+
+      {/* Always Visible Third Party Confirmation Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Third Party Confirmation</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <SelectField label="TPC Met Person 1" id="tpcMetPerson1" name="tpcMetPerson1" value={report.tpcMetPerson1 || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.tpcMetPerson}
+          </SelectField>
+          <FormField label="Name of TPC 1" id="nameOfTpc1" name="nameOfTpc1" value={report.nameOfTpc1} onChange={handleChange} disabled={isReadOnly} />
+          <SelectField label="TPC Confirmation 1" id="tpcConfirmation1" name="tpcConfirmation1" value={report.tpcConfirmation1 || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.tpcConfirmation}
+          </SelectField>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <SelectField label="TPC Met Person 2" id="tpcMetPerson2" name="tpcMetPerson2" value={report.tpcMetPerson2 || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.tpcMetPerson}
+          </SelectField>
+          <FormField label="Name of TPC 2" id="nameOfTpc2" name="nameOfTpc2" value={report.nameOfTpc2} onChange={handleChange} disabled={isReadOnly} />
+          <SelectField label="TPC Confirmation 2" id="tpcConfirmation2" name="tpcConfirmation2" value={report.tpcConfirmation2 || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.tpcConfirmation}
+          </SelectField>
+        </div>
+      </div>
+
+      {/* Conditional Fields - Only show if office is open */}
       {report.officeStatus === OfficeStatusOffice.Opened && (
-        <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
-          <h5 className="font-semibold text-brand-primary">Verification Details (Office Open)</h5>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <SelectField label="Office Existance" id="officeExistence" name="officeExistence" value={report.officeExistence || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.officeExistence}</SelectField>
+        <div className="p-4 bg-yellow-900/20 rounded-lg space-y-4 border border-yellow-600/30">
+          <h4 className="font-semibold text-yellow-400">Additional Details (Office Open)</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField label="Current Company Name" id="currentCompanyName" name="currentCompanyName" value={report.currentCompanyName} onChange={handleChange} disabled={isReadOnly} />
             <FormField label="Met Person" id="metPerson" name="metPerson" value={report.metPerson} onChange={handleChange} disabled={isReadOnly} />
-            <SelectField label="Designation" id="designation" name="designation" value={report.designation || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.designation}</SelectField>
-            
-            <SelectField label="Company Name Plate" id="companyNamePlateStatus" name="companyNamePlateStatus" value={report.companyNamePlateStatus || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.sightStatus}</SelectField>
-            {report.companyNamePlateStatus === SightStatus.Sighted && <FormField label="Name on Board" id="nameOnBoard" name="nameOnBoard" value={report.nameOnBoard} onChange={handleChange} disabled={isReadOnly} />}
-          </div>
-
-          <div className="pt-4 mt-4 border-t border-dark-border">
-            <h5 className="font-semibold text-brand-primary">Third Party Confirmation 1</h5>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-              <SelectField label="TPC Met Person" id="tpcMetPerson1" name="tpcMetPerson1" value={report.tpcMetPerson1 || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.tpcMetPerson}</SelectField>
-              <FormField label="Name of TPC" id="nameOfTpc1" name="nameOfTpc1" value={report.nameOfTpc1} onChange={handleChange} disabled={isReadOnly} />
-              <SelectField label="Confirmation" id="tpcConfirmation1" name="tpcConfirmation1" value={report.tpcConfirmation1 || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.tpcConfirmation}</SelectField>
-            </div>
-          </div>
-          <div className="pt-4 mt-4 border-t border-dark-border">
-            <h5 className="font-semibold text-brand-primary">Third Party Confirmation 2</h5>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-              <SelectField label="TPC Met Person" id="tpcMetPerson2" name="tpcMetPerson2" value={report.tpcMetPerson2 || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.tpcMetPerson}</SelectField>
-              <FormField label="Name of TPC" id="nameOfTpc2" name="nameOfTpc2" value={report.nameOfTpc2} onChange={handleChange} disabled={isReadOnly} />
-              <SelectField label="Confirmation" id="tpcConfirmation2" name="tpcConfirmation2" value={report.tpcConfirmation2 || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.tpcConfirmation}</SelectField>
-            </div>
+            <SelectField label="Designation" id="designation" name="designation" value={report.designation || ''} onChange={handleChange} disabled={isReadOnly}>
+              <option value="">Select...</option>
+              {options.designation}
+            </SelectField>
           </div>
         </div>
       )}
