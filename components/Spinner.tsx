@@ -1,5 +1,4 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
 
 interface SpinnerProps {
     size?: 'small' | 'large';
@@ -7,8 +6,20 @@ interface SpinnerProps {
 }
 
 const Spinner: React.FC<SpinnerProps> = ({ size = 'large', color = "#ffffff" }) => {
+    const spinnerSize = size === 'small' ? '20px' : '40px';
+
     return (
-        <ActivityIndicator size={size} color={color} />
+        <div
+            style={{
+                width: spinnerSize,
+                height: spinnerSize,
+                border: `3px solid ${color}33`,
+                borderTop: `3px solid ${color}`,
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                display: 'inline-block'
+            }}
+        />
     );
 };
 
