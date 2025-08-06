@@ -74,24 +74,96 @@ const UntraceableNocForm: React.FC<UntraceableNocFormProps> = ({ caseData }) => 
 
   return (
     <div className="space-y-4 pt-4 border-t border-dark-border">
-      
-      <FormField label="Contact Person" id="contactPerson" name="contactPerson" value={report.contactPerson} onChange={handleChange} disabled={isReadOnly} />
-      <FormField label="Met Person" id="metPerson" name="metPerson" value={report.metPerson} onChange={handleChange} disabled={isReadOnly} />
-      <SelectField label="Call Remark" id="callRemark" name="callRemark" value={report.callRemark || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.callRemark}</SelectField>
-      <SelectField label="Locality" id="locality" name="locality" value={report.locality || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.localityType}</SelectField>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField label="Landmark 1" id="landmark1" name="landmark1" value={report.landmark1} onChange={handleChange} disabled={isReadOnly} />
-        <FormField label="Landmark 2" id="landmark2" name="landmark2" value={report.landmark2} onChange={handleChange} disabled={isReadOnly} />
-        <FormField label="Landmark 3" id="landmark3" name="landmark3" value={report.landmark3} onChange={handleChange} disabled={isReadOnly} />
-        <FormField label="Landmark 4" id="landmark4" name="landmark4" value={report.landmark4} onChange={handleChange} disabled={isReadOnly} />
+      <h3 className="text-lg font-semibold text-brand-primary">Untraceable NOC Report</h3>
+
+      {/* Customer Information Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Customer Information</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <span className="text-sm text-medium-text">Customer Name</span>
+            <span className="block text-light-text">{caseData.customer.name}</span>
+          </div>
+          <div>
+            <span className="text-sm text-medium-text">Bank Name</span>
+            <span className="block text-light-text">{caseData.bankName || 'N/A'}</span>
+          </div>
+          <div>
+            <span className="text-sm text-medium-text">Product</span>
+            <span className="block text-light-text">{caseData.product || 'N/A'}</span>
+          </div>
+          <div>
+            <span className="text-sm text-medium-text">Trigger</span>
+            <span className="block text-light-text">{caseData.trigger || 'N/A'}</span>
+          </div>
+          <div className="md:col-span-2">
+            <span className="text-sm text-medium-text">Visit Address</span>
+            <span className="block text-light-text">{caseData.visitAddress || 'N/A'}</span>
+          </div>
+          <div>
+            <span className="text-sm text-medium-text">System Contact Number</span>
+            <span className="block text-light-text">{caseData.systemContactNumber || 'N/A'}</span>
+          </div>
+          <div>
+            <span className="text-sm text-medium-text">Customer Calling Code</span>
+            <span className="block text-light-text">{caseData.customerCallingCode || 'N/A'}</span>
+          </div>
+          <div>
+            <span className="text-sm text-medium-text">Applicant Status</span>
+            <span className="block text-light-text">{caseData.applicantStatus || 'N/A'}</span>
+          </div>
+        </div>
       </div>
 
-      <SelectField label="Dominated Area" id="dominatedArea" name="dominatedArea" value={report.dominatedArea || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.dominatedArea}</SelectField>
-      <TextAreaField label="Other Extra Remark" id="otherExtraRemark" name="otherExtraRemark" value={report.otherExtraRemark} onChange={handleChange} disabled={isReadOnly} />
-      
-      <SelectField label="Final Status" id="finalStatus" name="finalStatus" value={report.finalStatus || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.finalStatus}</SelectField>
-      {report.finalStatus === FinalStatusUntraceable.Hold && <FormField label="Reason for Hold" id="holdReason" name="holdReason" value={report.holdReason} onChange={handleChange} disabled={isReadOnly} />}
+      {/* Verification Details Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Verification Details</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField label="Contact Person" id="contactPerson" name="contactPerson" value={report.contactPerson} onChange={handleChange} disabled={isReadOnly} />
+          <FormField label="Met Person" id="metPerson" name="metPerson" value={report.metPerson} onChange={handleChange} disabled={isReadOnly} />
+          <SelectField label="Call Remark" id="callRemark" name="callRemark" value={report.callRemark || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.callRemark}
+          </SelectField>
+          <SelectField label="Locality" id="locality" name="locality" value={report.locality || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.localityType}
+          </SelectField>
+        </div>
+      </div>
+
+      {/* Property Details Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Property Details</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField label="Landmark 1" id="landmark1" name="landmark1" value={report.landmark1} onChange={handleChange} disabled={isReadOnly} />
+          <FormField label="Landmark 2" id="landmark2" name="landmark2" value={report.landmark2} onChange={handleChange} disabled={isReadOnly} />
+          <FormField label="Landmark 3" id="landmark3" name="landmark3" value={report.landmark3} onChange={handleChange} disabled={isReadOnly} />
+          <FormField label="Landmark 4" id="landmark4" name="landmark4" value={report.landmark4} onChange={handleChange} disabled={isReadOnly} />
+        </div>
+      </div>
+
+      {/* Area Assessment Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Area Assessment</h4>
+        <SelectField label="Dominated Area" id="dominatedArea" name="dominatedArea" value={report.dominatedArea || ''} onChange={handleChange} disabled={isReadOnly}>
+          <option value="">Select...</option>
+          {options.dominatedArea}
+        </SelectField>
+        <TextAreaField label="Other Extra Remark" id="otherExtraRemark" name="otherExtraRemark" value={report.otherExtraRemark} onChange={handleChange} disabled={isReadOnly} />
+      </div>
+
+      {/* Final Status Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Final Status</h4>
+        <SelectField label="Final Status" id="finalStatus" name="finalStatus" value={report.finalStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+          <option value="">Select...</option>
+          {options.finalStatus}
+        </SelectField>
+        {report.finalStatus === FinalStatusUntraceable.Hold && (
+          <FormField label="Reason for Hold" id="holdReason" name="holdReason" value={report.holdReason} onChange={handleChange} disabled={isReadOnly} />
+        )}
+      </div>
 
       <ImageCapture
         images={report.images}

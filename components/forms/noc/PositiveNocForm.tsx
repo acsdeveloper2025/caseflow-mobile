@@ -87,33 +87,76 @@ const PositiveNocForm: React.FC<PositiveNocFormProps> = ({ caseData }) => {
 
   return (
     <div className="space-y-4 pt-4 border-t border-dark-border">
-        <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border mb-4">
-            <h5 className="font-semibold text-brand-primary">Case Details</h5>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField label="Customer Name" id="case-customerName" name="case-customerName" value={caseData.customer.name} onChange={() => {}} disabled />
-                <FormField label="Bank Name" id="case-bankName" name="case-bankName" value={caseData.bankName || ''} onChange={() => {}} disabled />
-                <FormField label="Product" id="case-product" name="case-product" value={caseData.product || ''} onChange={() => {}} disabled />
-                <FormField label="Trigger" id="case-trigger" name="case-trigger" value={caseData.trigger || ''} onChange={() => {}} disabled />
-                <div className="md:col-span-2">
-                <FormField label="Visit Address" id="case-visitAddress" name="case-visitAddress" value={caseData.visitAddress || ''} onChange={() => {}} disabled />
-                </div>
-                <FormField label="System Contact Number" id="case-systemContactNumber" name="case-systemContactNumber" value={caseData.systemContactNumber || ''} onChange={() => {}} disabled />
-                <FormField label="Customer Calling Code" id="case-customerCallingCode" name="case-customerCallingCode" value={caseData.customerCallingCode || ''} onChange={() => {}} disabled />
-                <FormField label="Applicant Status" id="case-applicantStatus" name="case-applicantStatus" value={caseData.applicantStatus || ''} onChange={() => {}} disabled />
-            </div>
+      <h3 className="text-lg font-semibold text-brand-primary">Positive NOC Report</h3>
+
+      {/* Customer Information Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Customer Information</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <span className="text-sm text-medium-text">Customer Name</span>
+            <span className="block text-light-text">{caseData.customer.name}</span>
+          </div>
+          <div>
+            <span className="text-sm text-medium-text">Bank Name</span>
+            <span className="block text-light-text">{caseData.bankName || 'N/A'}</span>
+          </div>
+          <div>
+            <span className="text-sm text-medium-text">Product</span>
+            <span className="block text-light-text">{caseData.product || 'N/A'}</span>
+          </div>
+          <div>
+            <span className="text-sm text-medium-text">Trigger</span>
+            <span className="block text-light-text">{caseData.trigger || 'N/A'}</span>
+          </div>
+          <div className="md:col-span-2">
+            <span className="text-sm text-medium-text">Visit Address</span>
+            <span className="block text-light-text">{caseData.visitAddress || 'N/A'}</span>
+          </div>
+          <div>
+            <span className="text-sm text-medium-text">System Contact Number</span>
+            <span className="block text-light-text">{caseData.systemContactNumber || 'N/A'}</span>
+          </div>
+          <div>
+            <span className="text-sm text-medium-text">Customer Calling Code</span>
+            <span className="block text-light-text">{caseData.customerCallingCode || 'N/A'}</span>
+          </div>
+          <div>
+            <span className="text-sm text-medium-text">Applicant Status</span>
+            <span className="block text-light-text">{caseData.applicantStatus || 'N/A'}</span>
+          </div>
         </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SelectField label="Address Locatable" id="addressLocatable" name="addressLocatable" value={report.addressLocatable || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.addressLocatable}</SelectField>
-        <SelectField label="Address Rating" id="addressRating" name="addressRating" value={report.addressRating || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.addressRating}</SelectField>
-        <SelectField label="Office Status" id="officeStatus" name="officeStatus" value={report.officeStatus || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.officeStatus}</SelectField>
       </div>
 
+      {/* Address Verification Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Address Verification</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <SelectField label="Address Locatable" id="addressLocatable" name="addressLocatable" value={report.addressLocatable || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.addressLocatable}
+          </SelectField>
+          <SelectField label="Address Rating" id="addressRating" name="addressRating" value={report.addressRating || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.addressRating}
+          </SelectField>
+          <SelectField label="Office Status" id="officeStatus" name="officeStatus" value={report.officeStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.officeStatus}
+          </SelectField>
+        </div>
+      </div>
+
+      {/* NOC Verification Details Section - Conditional */}
       {report.officeStatus === OfficeStatusOffice.Opened && (
-        <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
-          <h5 className="font-semibold text-brand-primary">Verification Details (Office Open)</h5>
+        <div className="p-4 bg-yellow-900/20 rounded-lg space-y-4 border border-yellow-600/30">
+          <h4 className="font-semibold text-yellow-400">NOC Verification Details (Office Open)</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="Met Person" id="metPerson" name="metPerson" value={report.metPerson} onChange={handleChange} disabled={isReadOnly} />
-            <SelectField label="Designation" id="designation" name="designation" value={report.designation || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.designation}</SelectField>
+            <SelectField label="Designation" id="designation" name="designation" value={report.designation || ''} onChange={handleChange} disabled={isReadOnly}>
+              <option value="">Select...</option>
+              {options.designation}
+            </SelectField>
             <FormField label="Authorised Signature" id="authorisedSignature" name="authorisedSignature" value={report.authorisedSignature} onChange={handleChange} disabled={isReadOnly} />
             <FormField label="Name on NOC" id="nameOnNoc" name="nameOnNoc" value={report.nameOnNoc} onChange={handleChange} disabled={isReadOnly} />
             <FormField label="Flat / Shop / Office No." id="flatNo" name="flatNo" value={report.flatNo} onChange={handleChange} disabled={isReadOnly} />
@@ -121,21 +164,54 @@ const PositiveNocForm: React.FC<PositiveNocFormProps> = ({ caseData }) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SelectField label="Locality" id="locality" name="locality" value={report.locality || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.localityType}</SelectField>
-        <FormField label="Address Structure" id="addressStructure" name="addressStructure" value={report.addressStructure} onChange={handleChange} disabled={isReadOnly} />
-        <FormField label="Address Structure Color" id="addressStructureColor" name="addressStructureColor" value={report.addressStructureColor} onChange={handleChange} disabled={isReadOnly} />
-        <SelectField label="Political Connection" id="politicalConnection" name="politicalConnection" value={report.politicalConnection || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.politicalConnection}</SelectField>
-        <SelectField label="Dominated Area" id="dominatedArea" name="dominatedArea" value={report.dominatedArea || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.dominatedArea}</SelectField>
-        <SelectField label="Feedback from Neighbour" id="feedbackFromNeighbour" name="feedbackFromNeighbour" value={report.feedbackFromNeighbour || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.feedbackFromNeighbour}</SelectField>
+      {/* Property Details Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Property Details</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SelectField label="Locality" id="locality" name="locality" value={report.locality || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.localityType}
+          </SelectField>
+          <FormField label="Address Structure" id="addressStructure" name="addressStructure" value={report.addressStructure} onChange={handleChange} disabled={isReadOnly} />
+          <FormField label="Address Structure Color" id="addressStructureColor" name="addressStructureColor" value={report.addressStructureColor} onChange={handleChange} disabled={isReadOnly} />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField label="Landmark 1" id="landmark1" name="landmark1" value={report.landmark1} onChange={handleChange} disabled={isReadOnly} />
+          <FormField label="Landmark 2" id="landmark2" name="landmark2" value={report.landmark2} onChange={handleChange} disabled={isReadOnly} />
+        </div>
       </div>
-      
-      <FormField label="Landmark 1" id="landmark1" name="landmark1" value={report.landmark1} onChange={handleChange} disabled={isReadOnly} />
-      <FormField label="Landmark 2" id="landmark2" name="landmark2" value={report.landmark2} onChange={handleChange} disabled={isReadOnly} />
-      <TextAreaField label="Other Extra Remark" id="otherExtraRemark" name="otherExtraRemark" value={report.otherExtraRemark} onChange={handleChange} disabled={isReadOnly} />
-      
-      <SelectField label="Final Status" id="finalStatus" name="finalStatus" value={report.finalStatus || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.finalStatus}</SelectField>
-      {report.finalStatus === FinalStatus.Hold && <FormField label="Reason for Hold" id="holdReason" name="holdReason" value={report.holdReason} onChange={handleChange} disabled={isReadOnly} />}
+
+      {/* Area Assessment Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Area Assessment</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <SelectField label="Political Connection" id="politicalConnection" name="politicalConnection" value={report.politicalConnection || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.politicalConnection}
+          </SelectField>
+          <SelectField label="Dominated Area" id="dominatedArea" name="dominatedArea" value={report.dominatedArea || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.dominatedArea}
+          </SelectField>
+          <SelectField label="Feedback from Neighbour" id="feedbackFromNeighbour" name="feedbackFromNeighbour" value={report.feedbackFromNeighbour || ''} onChange={handleChange} disabled={isReadOnly}>
+            <option value="">Select...</option>
+            {options.feedbackFromNeighbour}
+          </SelectField>
+        </div>
+        <TextAreaField label="Other Extra Remark" id="otherExtraRemark" name="otherExtraRemark" value={report.otherExtraRemark} onChange={handleChange} disabled={isReadOnly} />
+      </div>
+
+      {/* Final Status Section */}
+      <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">
+        <h4 className="font-semibold text-brand-primary">Final Status</h4>
+        <SelectField label="Final Status" id="finalStatus" name="finalStatus" value={report.finalStatus || ''} onChange={handleChange} disabled={isReadOnly}>
+          <option value="">Select...</option>
+          {options.finalStatus}
+        </SelectField>
+        {report.finalStatus === FinalStatus.Hold && (
+          <FormField label="Reason for Hold" id="holdReason" name="holdReason" value={report.holdReason} onChange={handleChange} disabled={isReadOnly} />
+        )}
+      </div>
 
       <ImageCapture
         images={report.images}
