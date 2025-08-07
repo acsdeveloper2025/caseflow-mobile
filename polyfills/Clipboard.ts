@@ -38,4 +38,5 @@ const Clipboard = {
 };
 
 export { Clipboard };
+export const { setStringAsync, getStringAsync } = Clipboard;
 export default Clipboard;
