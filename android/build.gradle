@@ -24,6 +24,30 @@ allprojects {
     }
 }
 
+// Configure Java toolchain for all projects
+allprojects {
+    // Configure Java toolchain to use Java 21 for Capacitor compatibility
+    if (project.plugins.hasPlugin('java')) {
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(21)
+            }
+        }
+    }
+
+    // For Android projects, ensure Java 21 compatibility
+    if (project.hasProperty('android')) {
+        afterEvaluate {
+            android {
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_21
+                    targetCompatibility JavaVersion.VERSION_21
+                }
+            }
+        }
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
