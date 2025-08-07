@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, SafeAreaView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import Spinner from '../components/Spinner';
 import { InfoIcon, ClipboardIcon } from '../components/Icons';
 import Modal from '../components/Modal';
 import AsyncStorage from '../polyfills/AsyncStorage';
 import { Clipboard } from '../polyfills/Clipboard';
+import { SafeAreaView } from '../components/SafeAreaProvider';
 
 
 
@@ -49,10 +50,19 @@ const LoginScreen: React.FC = () => {
 
   return (
     <>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#111827' }}>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: '#111827' }}
+        className="mobile-container ios-viewport-fix"
+      >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1, justifyContent: 'center', padding: 16 }}
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            padding: 16,
+            minHeight: '100vh'
+          }}
+          className="mobile-padding"
         >
           <View style={{ width: '100%', maxWidth: 400, marginHorizontal: 'auto' }}>
             {/* Company Logo Header */}

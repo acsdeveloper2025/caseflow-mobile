@@ -13,6 +13,8 @@ import ProfileScreen from './screens/ProfileScreen';
 import DigitalIdCardScreen from './screens/DigitalIdCardScreen';
 import BottomNavigation from './components/BottomNavigation';
 import SearchDemo from './components/SearchDemo';
+import { SafeAreaProvider, MobileContainer } from './components/SafeAreaProvider';
+import { ResponsiveLayoutProvider } from './components/ResponsiveLayout';
 import { View } from 'react-native';
 
 const AppNavigator: React.FC = () => {
@@ -20,20 +22,22 @@ const AppNavigator: React.FC = () => {
 
   if (isLoading) {
     return (
-      <View style={{
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#111827',
-        height: '100vh'
-      }}>
-        <div style={{ color: '#00a950', fontSize: '18px' }}>Loading...</div>
-      </View>
+      <MobileContainer>
+        <View style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#111827',
+          height: '100vh'
+        }}>
+          <div style={{ color: '#00a950', fontSize: '18px' }}>Loading...</div>
+        </View>
+      </MobileContainer>
     );
   }
 
   return (
-    <>
+    <MobileContainer>
       <Routes>
         {isAuthenticated ? (
           <>
@@ -56,18 +60,22 @@ const AppNavigator: React.FC = () => {
       </Routes>
       {isAuthenticated && <BottomNavigation />}
       {isAuthenticated && <SearchDemo />}
-    </>
+    </MobileContainer>
   );
 };
 
 const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <CaseProvider>
-          <AppNavigator />
-        </CaseProvider>
-      </AuthProvider>
+      <SafeAreaProvider>
+        <ResponsiveLayoutProvider>
+          <AuthProvider>
+            <CaseProvider>
+              <AppNavigator />
+            </CaseProvider>
+          </AuthProvider>
+        </ResponsiveLayoutProvider>
+      </SafeAreaProvider>
     </BrowserRouter>
   );
 };

@@ -28,6 +28,33 @@ module.exports = {
       fontFamily: {
         'sans': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
+      spacing: {
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
+      },
+      padding: {
+        'safe': 'max(4px, env(safe-area-inset-top)) env(safe-area-inset-right) max(4px, env(safe-area-inset-bottom)) env(safe-area-inset-left)',
+        'safe-t': 'max(2px, env(safe-area-inset-top))',
+        'safe-b': 'max(4px, env(safe-area-inset-bottom))',
+        'safe-l': 'env(safe-area-inset-left)',
+        'safe-r': 'env(safe-area-inset-right)',
+      },
+      margin: {
+        'safe-t': 'max(2px, env(safe-area-inset-top))',
+        'safe-b': 'max(4px, env(safe-area-inset-bottom))',
+        'safe-l': 'env(safe-area-inset-left)',
+        'safe-r': 'env(safe-area-inset-right)',
+      },
+      minHeight: {
+        'screen-safe': 'calc(100vh - max(2px, env(safe-area-inset-top)) - max(4px, env(safe-area-inset-bottom)))',
+        'dvh': '100dvh',
+      },
+      height: {
+        'screen-safe': 'calc(100vh - max(2px, env(safe-area-inset-top)) - max(4px, env(safe-area-inset-bottom)))',
+        'dvh': '100dvh',
+      },
     },
   },
   plugins: [],
