@@ -10,6 +10,7 @@ import InProgressCasesScreen from './screens/InProgressCasesScreen';
 import CompletedCasesScreen from './screens/CompletedCasesScreen';
 import SavedCasesScreen from './screens/SavedCasesScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import DigitalIdCardScreen from './screens/DigitalIdCardScreen';
 import BottomNavigation from './components/BottomNavigation';
 import { View } from 'react-native';
 
@@ -54,6 +55,7 @@ const AppNavigator: React.FC = () => {
             <Route path="/cases/completed" element={<CompletedCasesScreen />} />
             <Route path="/cases/saved" element={<SavedCasesScreen />} />
             <Route path="/profile" element={<ProfileScreen />} />
+            <Route path="/digital-id-card" element={<DigitalIdCardScreen />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </>
         ) : (
