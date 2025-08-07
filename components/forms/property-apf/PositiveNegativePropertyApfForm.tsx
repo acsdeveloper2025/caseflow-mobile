@@ -159,7 +159,7 @@ const PositiveNegativePropertyApfForm: React.FC<PositiveNegativePropertyApfFormP
     if (verificationStatus === VerificationStatus.Positive) {
         updatePositivePropertyApfReport(caseData.id, updates);
     } else {
-        updateNegativePropertyApfReport(caseData.id, updates);
+        updateNspPropertyApfReport(caseData.id, updates);
     }
   };
   

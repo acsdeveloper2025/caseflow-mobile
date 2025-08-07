@@ -10,20 +10,9 @@ import InProgressCasesScreen from './screens/InProgressCasesScreen';
 import CompletedCasesScreen from './screens/CompletedCasesScreen';
 import SavedCasesScreen from './screens/SavedCasesScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import DigitalIdCardScreen from './screens/DigitalIdCardScreen';
 import BottomNavigation from './components/BottomNavigation';
 import { View } from 'react-native';
-
-const App: React.FC = () => {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <CaseProvider>
-          <AppNavigator />
-        </CaseProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  );
-};
 
 const AppNavigator: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -54,6 +43,7 @@ const AppNavigator: React.FC = () => {
             <Route path="/cases/completed" element={<CompletedCasesScreen />} />
             <Route path="/cases/saved" element={<SavedCasesScreen />} />
             <Route path="/profile" element={<ProfileScreen />} />
+            <Route path="/digital-id-card" element={<DigitalIdCardScreen />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </>
         ) : (
@@ -65,6 +55,18 @@ const AppNavigator: React.FC = () => {
       </Routes>
       {isAuthenticated && <BottomNavigation />}
     </>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <CaseProvider>
+          <AppNavigator />
+        </CaseProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 };
 
