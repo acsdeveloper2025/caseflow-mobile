@@ -9,6 +9,8 @@ const CompletedCasesScreen: React.FC = () => {
       title="Completed Cases"
       filter={(c) => c.status === CaseStatus.Completed}
       emptyMessage="You have not completed any cases yet."
+      tabKey="completed"
+      searchPlaceholder="Search completed cases..."
     />
   );
 };

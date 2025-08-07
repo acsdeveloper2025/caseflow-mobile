@@ -9,6 +9,8 @@ const AssignedCasesScreen: React.FC = () => {
       title="Assigned Cases"
       filter={(c) => c.status === CaseStatus.Assigned}
       emptyMessage="No assigned cases at the moment."
+      tabKey="assigned"
+      searchPlaceholder="Search assigned cases..."
     />
   );
 };

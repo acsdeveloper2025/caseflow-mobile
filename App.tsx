@@ -12,6 +12,7 @@ import SavedCasesScreen from './screens/SavedCasesScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import DigitalIdCardScreen from './screens/DigitalIdCardScreen';
 import BottomNavigation from './components/BottomNavigation';
+import SearchDemo from './components/SearchDemo';
 import { View } from 'react-native';
 
 const AppNavigator: React.FC = () => {
@@ -54,6 +55,7 @@ const AppNavigator: React.FC = () => {
         )}
       </Routes>
       {isAuthenticated && <BottomNavigation />}
+      {isAuthenticated && <SearchDemo />}
     </>
   );
 };
