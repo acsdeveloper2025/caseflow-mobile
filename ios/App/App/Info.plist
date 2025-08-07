@@ -53,5 +53,11 @@
 	<string>This app needs location access to tag photos with GPS coordinates for verification purposes.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app needs location access to tag photos with GPS coordinates for verification purposes.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>This app needs notification access to send important verification updates and reminders.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app needs local network access to communicate with verification services.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app may need microphone access for video verification features.</string>
 </dict>
 </plist>

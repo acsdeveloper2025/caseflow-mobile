@@ -9,10 +9,23 @@ const config: CapacitorConfig = {
   },
   plugins: {
     Camera: {
-      permissions: ['camera', 'photos']
+      permissions: ['camera', 'photos'],
+      iosImagePickerPermissions: ['camera', 'photos'],
+      androidImagePickerPermissions: ['camera', 'photos']
     },
     Geolocation: {
-      permissions: ['location']
+      permissions: ['location'],
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 3600000
+    },
+    LocalNotifications: {
+      smallIcon: "ic_stat_icon_config_sample",
+      iconColor: "#488AFF",
+      sound: "beep.wav"
+    },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"]
     },
     SplashScreen: {
       launchShowDuration: 2000,
@@ -23,6 +36,10 @@ const config: CapacitorConfig = {
     StatusBar: {
       style: 'dark',
       backgroundColor: "#111827"
+    },
+    Filesystem: {
+      iosDocumentPath: 'DOCUMENTS',
+      androidDocumentPath: 'DOCUMENTS'
     }
   }
 };

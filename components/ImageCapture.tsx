@@ -3,6 +3,7 @@ import { CapturedImage } from '../types';
 import { CameraIcon, MapPinIcon, ClockIcon } from './Icons';
 import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capacitor/camera';
 import { Geolocation } from '@capacitor/geolocation';
+import { requestCameraPermissions, requestLocationPermissions, showPermissionDeniedAlert } from '../utils/permissions';
 
 interface ImageCaptureProps {
   images: CapturedImage[];
@@ -41,6 +42,18 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
     setIsLoading(true);
 
     try {
+      // Request camera permissions first
+      const cameraPermission = await requestCameraPermissions();
+
+      if (!cameraPermission.granted) {
+        if (cameraPermission.denied) {
+          showPermissionDeniedAlert('Camera');
+        }
+        setError('Camera permission is required to take photos');
+        setIsLoading(false);
+        return;
+      }
+
       // Use native camera if available, fallback to web
       const image = await Camera.getPhoto({
         quality: 90,
@@ -74,13 +87,20 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
       let accuracy;
 
       try {
-        const position = await Geolocation.getCurrentPosition({
-          enableHighAccuracy: true,
-          timeout: 10000,
-        });
-        latitude = position.coords.latitude;
-        longitude = position.coords.longitude;
-        accuracy = position.coords.accuracy;
+        // Request location permissions first
+        const locationPermission = await requestLocationPermissions();
+
+        if (locationPermission.granted) {
+          const position = await Geolocation.getCurrentPosition({
+            enableHighAccuracy: true,
+            timeout: 10000,
+          });
+          latitude = position.coords.latitude;
+          longitude = position.coords.longitude;
+          accuracy = position.coords.accuracy;
+        } else {
+          console.warn('Location permission not granted, proceeding without location');
+        }
       } catch (geoError) {
         console.warn('Geolocation failed, proceeding without location:', geoError);
         // Continue without location data - don't block photo capture
