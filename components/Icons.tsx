@@ -161,3 +161,20 @@ export const ClipboardIcon: React.FC<IconProps> = ({ width, height, color = "cur
         <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
     </svg>
 );
+
+export const SearchIcon: React.FC<IconProps> = ({ width, height, color = "currentColor", className }) => (
+    <svg
+        width={width || iconSize.width}
+        height={height || iconSize.height}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+    >
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+    </svg>
+);

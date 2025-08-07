@@ -11,6 +11,8 @@ const InProgressCasesScreen: React.FC = () => {
       sort={(a, b) => (a.order || 0) - (b.order || 0)}
       isReorderable={true}
       emptyMessage="No cases are currently in progress."
+      tabKey="in-progress"
+      searchPlaceholder="Search in progress cases..."
     />
   );
 };

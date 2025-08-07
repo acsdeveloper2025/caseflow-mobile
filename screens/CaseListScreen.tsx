@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Case } from '../types';
 import { useCases } from '../context/CaseContext';
 import CaseCard from '../components/CaseCard';
+import TabSearch from '../components/TabSearch';
+import { useTabSearch } from '../hooks/useTabSearch';
 
 
 
@@ -14,13 +16,24 @@ interface CaseListScreenProps {
   emptyMessage: string;
   sort?: (a: Case, b: Case) => number;
   isReorderable?: boolean;
+  tabKey: string; // Unique identifier for search state management
+  searchPlaceholder?: string;
 }
 
-const CaseListScreen: React.FC<CaseListScreenProps> = ({ title, filter, emptyMessage, sort, isReorderable = false }) => {
+const CaseListScreen: React.FC<CaseListScreenProps> = ({
+  title,
+  filter,
+  emptyMessage,
+  sort,
+  isReorderable = false,
+  tabKey,
+  searchPlaceholder = "Search cases..."
+}) => {
   const { cases, loading } = useCases();
   const navigate = useNavigate();
-  
-  const processedCases = useMemo(() => {
+
+  // First apply the tab filter to get tab-specific cases
+  const tabCases = useMemo(() => {
     let filtered = cases.filter(filter);
     if (sort) {
       filtered.sort(sort);
@@ -28,9 +41,41 @@ const CaseListScreen: React.FC<CaseListScreenProps> = ({ title, filter, emptyMes
     return filtered;
   }, [cases, filter, sort]);
 
+  // Use tab search hook for search functionality
+  const {
+    searchQuery,
+    setSearchQuery,
+    filteredCases,
+    resultCount,
+    totalCount,
+    clearSearch
+  } = useTabSearch({
+    cases: tabCases,
+    tabKey
+  });
+
+  // Final processed cases are the search-filtered results
+  const processedCases = filteredCases;
+
   const renderEmpty = () => (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 40, paddingHorizontal: 16 }}>
-      <Text style={{ color: '#9CA3AF', textAlign: 'center' }}>{emptyMessage}</Text>
+      <Text style={{ color: '#9CA3AF', textAlign: 'center' }}>
+        {searchQuery ? `No cases found matching "${searchQuery}"` : emptyMessage}
+      </Text>
+      {searchQuery && (
+        <TouchableOpacity
+          onPress={clearSearch}
+          style={{
+            marginTop: 16,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            backgroundColor: '#374151',
+            borderRadius: 8
+          }}
+        >
+          <Text style={{ color: '#F9FAFB', fontSize: 14 }}>Clear Search</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -77,7 +122,18 @@ const CaseListScreen: React.FC<CaseListScreenProps> = ({ title, filter, emptyMes
           />
         )}
         keyExtractor={(item: Case) => item.id}
-        ListHeaderComponent={renderHeader}
+        ListHeaderComponent={() => (
+          <>
+            {renderHeader()}
+            <TabSearch
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              placeholder={searchPlaceholder}
+              resultCount={resultCount}
+              totalCount={totalCount}
+            />
+          </>
+        )}
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={{ paddingBottom: 100, paddingTop: 20 }}
       />
