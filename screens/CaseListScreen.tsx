@@ -34,7 +34,7 @@ const CaseListScreen: React.FC<CaseListScreenProps> = ({
 
   // First apply the tab filter to get tab-specific cases
   const tabCases = useMemo(() => {
-    let filtered = cases.filter(filter);
+    const filtered = cases.filter(filter);
     if (sort) {
       filtered.sort(sort);
     }
