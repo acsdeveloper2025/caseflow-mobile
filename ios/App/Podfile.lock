@@ -14,6 +14,10 @@ PODS:
   - CapacitorGeolocation (7.1.4):
     - Capacitor
     - IONGeolocationLib (~> 1.0)
+  - CapacitorLocalNotifications (7.0.2):
+    - Capacitor
+  - CapacitorPushNotifications (7.0.2):
+    - Capacitor
   - CapacitorSplashScreen (7.0.2):
     - Capacitor
   - CapacitorStatusBar (7.0.2):
@@ -29,6 +33,8 @@ DEPENDENCIES:
   - "CapacitorDevice (from `../../node_modules/@capacitor/device`)"
   - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
   - "CapacitorGeolocation (from `../../node_modules/@capacitor/geolocation`)"
+  - "CapacitorLocalNotifications (from `../../node_modules/@capacitor/local-notifications`)"
+  - "CapacitorPushNotifications (from `../../node_modules/@capacitor/push-notifications`)"
   - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
 
@@ -52,6 +58,10 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/filesystem"
   CapacitorGeolocation:
     :path: "../../node_modules/@capacitor/geolocation"
+  CapacitorLocalNotifications:
+    :path: "../../node_modules/@capacitor/local-notifications"
+  CapacitorPushNotifications:
+    :path: "../../node_modules/@capacitor/push-notifications"
   CapacitorSplashScreen:
     :path: "../../node_modules/@capacitor/splash-screen"
   CapacitorStatusBar:
@@ -65,11 +75,13 @@ SPEC CHECKSUMS:
   CapacitorDevice: 81ae78d5d1942707caad79276badd458bf6ec603
   CapacitorFilesystem: f9bd850c41e048180e5dc0cbb90f2033ede9d2cc
   CapacitorGeolocation: 32a1f849c38c72b5071de36a28ebc548ef3bb611
+  CapacitorLocalNotifications: 665188ae8accd40806129073896fb2b39322d858
+  CapacitorPushNotifications: 7c0659b349b149ee3936a682da31a9d269de9582
   CapacitorSplashScreen: 157947576b59d913792063a8d442a79e6d283ee5
   CapacitorStatusBar: e04d05e121d5a5979c29eb4249186a4e4a84cacb
   IONFilesystemLib: 89258b8e3e85465da93127d25d7ce37f977e8a6f
   IONGeolocationLib: 81f33f88d025846946de2cf63b0c7628e7c6bc9d
 
-PODFILE CHECKSUM: 421e06c18f6fe02aed481f96d54e34ae6ded5c1b
+PODFILE CHECKSUM: fd0623a767b8881a63f2cc4568edf47bfdcd189c
 
 COCOAPODS: 1.16.2
