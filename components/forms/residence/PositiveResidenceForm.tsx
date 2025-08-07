@@ -9,6 +9,7 @@ import { useCases } from '../../../context/CaseContext';
 import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
+import SelfieCapture from '../../SelfieCapture';
 
 interface PositiveResidenceFormProps {
   caseData: Case;
@@ -44,8 +45,11 @@ const PositiveResidenceForm: React.FC<PositiveResidenceFormProps> = ({ caseData 
 
   const isFormValid = useMemo(() => {
     if (!report) return false;
-    
+
     if (report.images.length < MIN_IMAGES) return false;
+
+    // Require at least one selfie image
+    if (!report.selfieImages || report.selfieImages.length === 0) return false;
 
     const checkFields = (fields: (keyof ResidenceReportData)[]) => fields.every(field => {
         const value = report[field];
@@ -133,6 +137,10 @@ const PositiveResidenceForm: React.FC<PositiveResidenceFormProps> = ({ caseData 
   
   const handleImagesChange = (images: CapturedImage[]) => {
     updateResidenceReport(caseData.id, { images });
+  };
+
+  const handleSelfieImagesChange = (selfieImages: CapturedImage[]) => {
+    updateResidenceReport(caseData.id, { selfieImages });
   };
 
   const options = useMemo(() => ({
@@ -380,6 +388,15 @@ const PositiveResidenceForm: React.FC<PositiveResidenceFormProps> = ({ caseData 
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+      />
+
+      {/* Selfie Capture Section */}
+      <SelfieCapture
+        images={report.selfieImages || []}
+        onImagesChange={handleSelfieImagesChange}
+        isReadOnly={isReadOnly}
+        required={true}
+        title="🤳 Verification Selfie (Required)"
       />
 
       {/* Submit Section */}

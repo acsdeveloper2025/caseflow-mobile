@@ -9,6 +9,7 @@ import { useCases } from '../../../context/CaseContext';
 import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
+import SelfieCapture from '../../SelfieCapture';
 
 interface PositiveResiCumOfficeFormProps {
   caseData: Case;
@@ -31,8 +32,11 @@ const PositiveResiCumOfficeForm: React.FC<PositiveResiCumOfficeFormProps> = ({ c
 
   const isFormValid = useMemo(() => {
     if (!report) return false;
-    
+
     if (report.images.length < MIN_IMAGES) return false;
+
+    // Require at least one selfie image
+    if (!report.selfieImages || report.selfieImages.length === 0) return false;
 
     const checkFields = (fields: (keyof ResiCumOfficeReportData)[]) => fields.every(field => {
         const value = report[field];
@@ -109,6 +113,10 @@ const PositiveResiCumOfficeForm: React.FC<PositiveResiCumOfficeFormProps> = ({ c
 
   const handleImagesChange = (images: CapturedImage[]) => {
     updateResiCumOfficeReport(caseData.id, { images });
+  };
+
+  const handleSelfieImagesChange = (selfieImages: CapturedImage[]) => {
+    updateResiCumOfficeReport(caseData.id, { selfieImages });
   };
   
   const options = useMemo(() => ({
@@ -393,6 +401,15 @@ const PositiveResiCumOfficeForm: React.FC<PositiveResiCumOfficeFormProps> = ({ c
             onImagesChange={handleImagesChange}
             isReadOnly={isReadOnly}
             minImages={MIN_IMAGES}
+        />
+
+        {/* Selfie Capture Section */}
+        <SelfieCapture
+          images={report.selfieImages || []}
+          onImagesChange={handleSelfieImagesChange}
+          isReadOnly={isReadOnly}
+          required={true}
+          title="🤳 Verification Selfie (Required)"
         />
 
         {!isReadOnly && caseData.status === CaseStatus.InProgress && (

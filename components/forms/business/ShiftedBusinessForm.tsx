@@ -8,6 +8,7 @@ import { useCases } from '../../../context/CaseContext';
 import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
+import SelfieCapture from '../../SelfieCapture';
 
 interface ShiftedBusinessFormProps {
   caseData: Case;
@@ -30,8 +31,11 @@ const ShiftedBusinessForm: React.FC<ShiftedBusinessFormProps> = ({ caseData }) =
 
   const isFormValid = useMemo(() => {
     if (!report) return false;
-    
+
     if (report.images.length < MIN_IMAGES) return false;
+
+    // Require at least one selfie image
+    if (!report.selfieImages || report.selfieImages.length === 0) return false;
 
     const checkFields = (fields: (keyof ShiftedBusinessReportData)[]) => fields.every(field => {
         const value = report[field];
@@ -96,6 +100,10 @@ const ShiftedBusinessForm: React.FC<ShiftedBusinessFormProps> = ({ caseData }) =
   
   const handleImagesChange = (images: CapturedImage[]) => {
     updateShiftedBusinessReport(caseData.id, { images });
+  };
+
+  const handleSelfieImagesChange = (selfieImages: CapturedImage[]) => {
+    updateShiftedBusinessReport(caseData.id, { selfieImages });
   };
 
   const options = useMemo(() => ({
@@ -308,6 +316,15 @@ const ShiftedBusinessForm: React.FC<ShiftedBusinessFormProps> = ({ caseData }) =
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+      />
+
+      {/* Selfie Capture Section */}
+      <SelfieCapture
+        images={report.selfieImages || []}
+        onImagesChange={handleSelfieImagesChange}
+        isReadOnly={isReadOnly}
+        required={true}
+        title="🤳 Verification Selfie (Required)"
       />
 
       {!isReadOnly && caseData.status === CaseStatus.InProgress && (

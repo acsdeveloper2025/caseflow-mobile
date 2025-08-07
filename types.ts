@@ -501,6 +501,7 @@ export interface ResidenceReportData {
   finalStatus: FinalStatus | null;
   holdReason: string;
   images: CapturedImage[];
+  selfieImages: CapturedImage[];
 }
 
 export interface ShiftedResidenceReportData {
@@ -533,6 +534,7 @@ export interface ShiftedResidenceReportData {
     finalStatus: FinalStatusShifted | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface NspResidenceReportData {
@@ -568,6 +570,7 @@ export interface NspResidenceReportData {
     finalStatus: FinalStatusShifted | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface EntryRestrictedResidenceReportData {
@@ -592,6 +595,7 @@ export interface EntryRestrictedResidenceReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface UntraceableResidenceReportData {
@@ -607,6 +611,7 @@ export interface UntraceableResidenceReportData {
     finalStatus: FinalStatusUntraceable | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface ResiCumOfficeReportData {
@@ -653,6 +658,7 @@ export interface ResiCumOfficeReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface ShiftedResiCumOfficeReportData {
@@ -684,6 +690,7 @@ export interface ShiftedResiCumOfficeReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface NspResiCumOfficeReportData {
@@ -718,6 +725,7 @@ export interface NspResiCumOfficeReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface EntryRestrictedResiCumOfficeReportData {
@@ -742,6 +750,7 @@ export interface EntryRestrictedResiCumOfficeReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface UntraceableResiCumOfficeReportData {
@@ -757,6 +766,7 @@ export interface UntraceableResiCumOfficeReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface PositiveOfficeReportData {
@@ -798,6 +808,7 @@ export interface PositiveOfficeReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface ShiftedOfficeReportData {
@@ -831,6 +842,7 @@ export interface ShiftedOfficeReportData {
     finalStatus: FinalStatusShiftedOffice | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface NspOfficeReportData {
@@ -861,6 +873,7 @@ export interface NspOfficeReportData {
     finalStatus: FinalStatusShiftedOffice | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface EntryRestrictedOfficeReportData {
@@ -883,6 +896,7 @@ export interface EntryRestrictedOfficeReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface UntraceableOfficeReportData {
@@ -898,6 +912,7 @@ export interface UntraceableOfficeReportData {
     finalStatus: FinalStatusUntraceable | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface PositiveBusinessReportData {
@@ -937,6 +952,7 @@ export interface PositiveBusinessReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface ShiftedBusinessReportData {
@@ -971,6 +987,7 @@ export interface ShiftedBusinessReportData {
     finalStatus: FinalStatusShiftedBusiness | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface NspBusinessReportData {
@@ -1003,6 +1020,7 @@ export interface NspBusinessReportData {
     finalStatus: FinalStatusShiftedBusiness | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface EntryRestrictedBusinessReportData {
@@ -1024,6 +1042,7 @@ export interface EntryRestrictedBusinessReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface UntraceableBusinessReportData {
@@ -1039,6 +1058,7 @@ export interface UntraceableBusinessReportData {
     finalStatus: FinalStatusUntraceable | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface PositiveBuilderReportData {
@@ -1078,6 +1098,7 @@ export interface PositiveBuilderReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface ShiftedBuilderReportData {
@@ -1112,6 +1133,7 @@ export interface ShiftedBuilderReportData {
     finalStatus: FinalStatusShiftedBusiness | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface NspBuilderReportData {
@@ -1144,6 +1166,7 @@ export interface NspBuilderReportData {
     finalStatus: FinalStatusShiftedBusiness | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface EntryRestrictedBuilderReportData {
@@ -1165,6 +1188,7 @@ export interface EntryRestrictedBuilderReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface UntraceableBuilderReportData {
@@ -1180,6 +1204,7 @@ export interface UntraceableBuilderReportData {
     finalStatus: FinalStatusUntraceable | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface PositiveNocReportData {
@@ -1203,6 +1228,7 @@ export interface PositiveNocReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface ShiftedNocReportData {
@@ -1268,6 +1294,7 @@ export interface NspNocReportData {
     finalStatus: FinalStatusShiftedBusiness | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface EntryRestrictedNocReportData {
@@ -1555,6 +1582,7 @@ export interface UntraceablePropertyApfReportData {
     finalStatus: FinalStatusUntraceable | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface PositivePropertyIndividualReportData {
@@ -1590,6 +1618,7 @@ export interface PositivePropertyIndividualReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface NspPropertyIndividualReportData {

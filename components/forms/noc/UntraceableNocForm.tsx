@@ -6,6 +6,7 @@ import { useCases } from '../../../context/CaseContext';
 import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
+import SelfieCapture from '../../SelfieCapture';
 
 interface UntraceableNocFormProps {
   caseData: Case;
@@ -30,6 +31,9 @@ const UntraceableNocForm: React.FC<UntraceableNocFormProps> = ({ caseData }) => 
     if (!report) return false;
 
     if (report.images.length < MIN_IMAGES) return false;
+
+    // Require at least one selfie image
+    if (!report.selfieImages || report.selfieImages.length === 0) return false;
 
     const checkFields = (fields: (keyof UntraceableNocReportData)[]) => fields.every(field => {
         const value = report[field];
@@ -63,6 +67,10 @@ const UntraceableNocForm: React.FC<UntraceableNocFormProps> = ({ caseData }) => 
 
   const handleImagesChange = (images: CapturedImage[]) => {
     updateUntraceableNocReport(caseData.id, { images });
+  };
+
+  const handleSelfieImagesChange = (selfieImages: CapturedImage[]) => {
+    updateUntraceableNocReport(caseData.id, { selfieImages });
   };
   
   const options = useMemo(() => ({
@@ -170,6 +178,15 @@ const UntraceableNocForm: React.FC<UntraceableNocFormProps> = ({ caseData }) => 
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+      />
+
+      {/* Selfie Capture Section */}
+      <SelfieCapture
+        images={report.selfieImages || []}
+        onImagesChange={handleSelfieImagesChange}
+        isReadOnly={isReadOnly}
+        required={true}
+        title="🤳 Verification Selfie (Required)"
       />
 
       {!isReadOnly && caseData.status === CaseStatus.InProgress && (

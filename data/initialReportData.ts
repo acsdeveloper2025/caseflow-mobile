@@ -41,6 +41,7 @@ export const initialResidenceReport: ResidenceReportData = {
   finalStatus: null,
   holdReason: '',
   images: [],
+  selfieImages: [],
 };
 
 export const initialShiftedResidenceReport: ShiftedResidenceReportData = {
@@ -73,6 +74,7 @@ export const initialShiftedResidenceReport: ShiftedResidenceReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialNspResidenceReport: NspResidenceReportData = {
@@ -105,6 +107,7 @@ export const initialNspResidenceReport: NspResidenceReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialEntryRestrictedResidenceReport: EntryRestrictedResidenceReportData = {
@@ -129,6 +132,7 @@ export const initialEntryRestrictedResidenceReport: EntryRestrictedResidenceRepo
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialUntraceableResidenceReport: UntraceableResidenceReportData = {
@@ -144,6 +148,7 @@ export const initialUntraceableResidenceReport: UntraceableResidenceReportData =
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialResiCumOfficeReport: ResiCumOfficeReportData = {
@@ -190,6 +195,7 @@ export const initialResiCumOfficeReport: ResiCumOfficeReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialShiftedResiCumOfficeReport: ShiftedResiCumOfficeReportData = {
@@ -221,6 +227,7 @@ export const initialShiftedResiCumOfficeReport: ShiftedResiCumOfficeReportData =
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialNspResiCumOfficeReport: NspResiCumOfficeReportData = {
@@ -252,6 +259,7 @@ export const initialNspResiCumOfficeReport: NspResiCumOfficeReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialEntryRestrictedResiCumOfficeReport: EntryRestrictedResiCumOfficeReportData = {
@@ -276,6 +284,7 @@ export const initialEntryRestrictedResiCumOfficeReport: EntryRestrictedResiCumOf
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialUntraceableResiCumOfficeReport: UntraceableResiCumOfficeReportData = {
@@ -291,6 +300,7 @@ export const initialUntraceableResiCumOfficeReport: UntraceableResiCumOfficeRepo
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialPositiveOfficeReport: PositiveOfficeReportData = {

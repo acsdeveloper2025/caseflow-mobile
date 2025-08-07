@@ -8,6 +8,7 @@ import { useCases } from '../../../context/CaseContext';
 import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
+import SelfieCapture from '../../SelfieCapture';
 
 interface ShiftedNocFormProps {
   caseData: Case;
@@ -32,6 +33,9 @@ const ShiftedNocForm: React.FC<ShiftedNocFormProps> = ({ caseData }) => {
     if (!report) return false;
 
     if (report.images.length < MIN_IMAGES) return false;
+
+    // Require at least one selfie image
+    if (!report.selfieImages || report.selfieImages.length === 0) return false;
 
     const checkFields = (fields: (keyof ShiftedNocReportData)[]) => fields.every(field => {
         const value = report[field];
@@ -85,6 +89,10 @@ const ShiftedNocForm: React.FC<ShiftedNocFormProps> = ({ caseData }) => {
 
   const handleImagesChange = (images: CapturedImage[]) => {
     updateShiftedNocReport(caseData.id, { images });
+  };
+
+  const handleSelfieImagesChange = (selfieImages: CapturedImage[]) => {
+    updateShiftedNocReport(caseData.id, { selfieImages });
   };
 
   const options = useMemo(() => ({
@@ -281,6 +289,15 @@ const ShiftedNocForm: React.FC<ShiftedNocFormProps> = ({ caseData }) => {
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+      />
+
+      {/* Selfie Capture Section */}
+      <SelfieCapture
+        images={report.selfieImages || []}
+        onImagesChange={handleSelfieImagesChange}
+        isReadOnly={isReadOnly}
+        required={true}
+        title="🤳 Verification Selfie (Required)"
       />
 
       {!isReadOnly && caseData.status === CaseStatus.InProgress && (

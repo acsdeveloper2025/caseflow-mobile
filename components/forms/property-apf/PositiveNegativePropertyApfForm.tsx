@@ -9,6 +9,7 @@ import { useCases } from '../../../context/CaseContext';
 import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
+import SelfieCapture from '../../SelfieCapture';
 
 interface PositiveNegativePropertyApfFormProps {
   caseData: Case;
@@ -60,6 +61,9 @@ const PositiveNegativePropertyApfForm: React.FC<PositiveNegativePropertyApfFormP
     if (!report) return false;
 
     if (report.images.length < MIN_IMAGES) return false;
+
+    // Require at least one selfie image
+    if (!report.selfieImages || report.selfieImages.length === 0) return false;
 
     const checkFields = (fields: string[]) => fields.every(field => {
         const value = (report as any)[field];
@@ -147,6 +151,15 @@ const PositiveNegativePropertyApfForm: React.FC<PositiveNegativePropertyApfFormP
         updatePositivePropertyApfReport(caseData.id, updates);
     } else {
         updateNspPropertyApfReport(caseData.id, updates);
+    }
+  };
+
+  const handleSelfieImagesChange = (selfieImages: CapturedImage[]) => {
+    const updates = { selfieImages };
+    if (verificationStatus === VerificationStatus.Positive) {
+        updatePositivePropertyApfReport(caseData.id, updates);
+    } else {
+        updateNegativePropertyApfReport(caseData.id, updates);
     }
   };
   
@@ -424,6 +437,15 @@ const PositiveNegativePropertyApfForm: React.FC<PositiveNegativePropertyApfFormP
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+      />
+
+      {/* Selfie Capture Section */}
+      <SelfieCapture
+        images={report.selfieImages || []}
+        onImagesChange={handleSelfieImagesChange}
+        isReadOnly={isReadOnly}
+        required={true}
+        title="🤳 Verification Selfie (Required)"
       />
 
       {!isReadOnly && caseData.status === CaseStatus.InProgress && (

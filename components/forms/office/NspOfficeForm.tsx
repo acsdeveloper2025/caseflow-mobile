@@ -8,6 +8,7 @@ import { useCases } from '../../../context/CaseContext';
 import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
+import SelfieCapture from '../../SelfieCapture';
 
 interface NspOfficeFormProps {
   caseData: Case;
@@ -30,8 +31,11 @@ const NspOfficeForm: React.FC<NspOfficeFormProps> = ({ caseData }) => {
 
   const isFormValid = useMemo(() => {
     if (!report) return false;
-    
+
     if (report.images.length < MIN_IMAGES) return false;
+
+    // Require at least one selfie image
+    if (!report.selfieImages || report.selfieImages.length === 0) return false;
 
     const checkFields = (fields: (keyof NspOfficeReportData)[]) => fields.every(field => {
         const value = report[field];
@@ -88,6 +92,10 @@ const NspOfficeForm: React.FC<NspOfficeFormProps> = ({ caseData }) => {
   
   const handleImagesChange = (images: CapturedImage[]) => {
     updateNspOfficeReport(caseData.id, { images });
+  };
+
+  const handleSelfieImagesChange = (selfieImages: CapturedImage[]) => {
+    updateNspOfficeReport(caseData.id, { selfieImages });
   };
 
   const options = useMemo(() => ({
@@ -213,6 +221,15 @@ const NspOfficeForm: React.FC<NspOfficeFormProps> = ({ caseData }) => {
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+      />
+
+      {/* Selfie Capture Section */}
+      <SelfieCapture
+        images={report.selfieImages || []}
+        onImagesChange={handleSelfieImagesChange}
+        isReadOnly={isReadOnly}
+        required={true}
+        title="🤳 Verification Selfie (Required)"
       />
 
       {!isReadOnly && caseData.status === CaseStatus.InProgress && (

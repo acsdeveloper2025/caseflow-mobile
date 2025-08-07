@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CapturedImage } from '../types';
 import { CameraIcon, MapPinIcon, ClockIcon } from './Icons';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capacitor/camera';
 import { Geolocation } from '@capacitor/geolocation';
 
 interface ImageCaptureProps {
@@ -9,6 +9,10 @@ interface ImageCaptureProps {
   onImagesChange: (images: CapturedImage[]) => void;
   isReadOnly?: boolean;
   minImages?: number;
+  cameraDirection?: 'front' | 'rear';
+  componentType?: 'photo' | 'selfie';
+  title?: string;
+  required?: boolean;
 }
 
 interface ImageMetadata {
@@ -17,7 +21,16 @@ interface ImageMetadata {
   addressError?: string;
 }
 
-const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isReadOnly, minImages }) => {
+const ImageCapture: React.FC<ImageCaptureProps> = ({
+  images,
+  onImagesChange,
+  isReadOnly,
+  minImages,
+  cameraDirection = 'rear',
+  componentType = 'photo',
+  title,
+  required = false
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageMetadata, setImageMetadata] = useState<Record<string, ImageMetadata>>({});
@@ -34,6 +47,7 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Camera,
+        direction: cameraDirection === 'front' ? CameraDirection.Front : CameraDirection.Rear,
       });
 
       if (image.dataUrl) {
@@ -298,14 +312,21 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({ images, onImagesChange, isR
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h6 className="font-semibold text-light-text">📷 Photo Capture</h6>
+        <h6 className="font-semibold text-light-text">
+          {title || (componentType === 'selfie' ? '🤳 Selfie Photo Capture' : '📷 Photo Capture')}
+          {required && <span className="text-red-400 ml-1">*</span>}
+        </h6>
         <button
           onClick={handleTakePhoto}
           disabled={isLoading}
           className="px-4 py-2 text-sm font-semibold rounded-md bg-brand-primary hover:bg-brand-secondary text-white transition-colors flex items-center gap-2 disabled:opacity-50"
         >
-          <CameraIcon width={16} height={16} />
-          {isLoading ? 'Processing...' : 'Take Photo'}
+          {componentType === 'selfie' ? (
+            <span className="w-4 h-4">🤳</span>
+          ) : (
+            <CameraIcon width={16} height={16} />
+          )}
+          {isLoading ? 'Processing...' : (componentType === 'selfie' ? 'Take Selfie' : 'Take Photo')}
         </button>
       </div>
 

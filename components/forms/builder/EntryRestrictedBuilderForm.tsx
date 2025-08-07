@@ -7,6 +7,7 @@ import { useCases } from '../../../context/CaseContext';
 import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
+import SelfieCapture from '../../SelfieCapture';
 
 interface EntryRestrictedBuilderFormProps {
   caseData: Case;
@@ -31,6 +32,9 @@ const EntryRestrictedBuilderForm: React.FC<EntryRestrictedBuilderFormProps> = ({
     if (!report) return false;
 
     if (report.images.length < MIN_IMAGES) return false;
+
+    // Require at least one selfie image
+    if (!report.selfieImages || report.selfieImages.length === 0) return false;
 
     const checkFields = (fields: (keyof EntryRestrictedBuilderReportData)[]) => fields.every(field => {
         const value = report[field];
@@ -65,6 +69,10 @@ const EntryRestrictedBuilderForm: React.FC<EntryRestrictedBuilderFormProps> = ({
 
   const handleImagesChange = (images: CapturedImage[]) => {
     updateEntryRestrictedBuilderReport(caseData.id, { images });
+  };
+
+  const handleSelfieImagesChange = (selfieImages: CapturedImage[]) => {
+    updateEntryRestrictedBuilderReport(caseData.id, { selfieImages });
   };
   
   const options = useMemo(() => ({
@@ -212,6 +220,15 @@ const EntryRestrictedBuilderForm: React.FC<EntryRestrictedBuilderFormProps> = ({
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+      />
+
+      {/* Selfie Capture Section */}
+      <SelfieCapture
+        images={report.selfieImages || []}
+        onImagesChange={handleSelfieImagesChange}
+        isReadOnly={isReadOnly}
+        required={true}
+        title="🤳 Verification Selfie (Required)"
       />
 
       {!isReadOnly && caseData.status === CaseStatus.InProgress && (

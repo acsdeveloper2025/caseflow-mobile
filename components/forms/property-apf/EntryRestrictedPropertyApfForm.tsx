@@ -8,6 +8,7 @@ import { useCases } from '../../../context/CaseContext';
 import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
+import SelfieCapture from '../../SelfieCapture';
 
 interface EntryRestrictedPropertyApfFormProps {
   caseData: Case;
@@ -32,6 +33,9 @@ const EntryRestrictedPropertyApfForm: React.FC<EntryRestrictedPropertyApfFormPro
     if (!report) return false;
 
     if (report.images.length < MIN_IMAGES) return false;
+
+    // Require at least one selfie image
+    if (!report.selfieImages || report.selfieImages.length === 0) return false;
 
     const checkFields = (fields: (keyof EntryRestrictedPropertyApfReportData)[]) => fields.every(field => {
         const value = report[field];
@@ -71,6 +75,10 @@ const EntryRestrictedPropertyApfForm: React.FC<EntryRestrictedPropertyApfFormPro
   
   const handleImagesChange = (images: CapturedImage[]) => {
     updateEntryRestrictedPropertyApfReport(caseData.id, { images });
+  };
+
+  const handleSelfieImagesChange = (selfieImages: CapturedImage[]) => {
+    updateEntryRestrictedPropertyApfReport(caseData.id, { selfieImages });
   };
   
   const options = useMemo(() => ({
@@ -249,6 +257,15 @@ const EntryRestrictedPropertyApfForm: React.FC<EntryRestrictedPropertyApfFormPro
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+      />
+
+      {/* Selfie Capture Section */}
+      <SelfieCapture
+        images={report.selfieImages || []}
+        onImagesChange={handleSelfieImagesChange}
+        isReadOnly={isReadOnly}
+        required={true}
+        title="🤳 Verification Selfie (Required)"
       />
 
       {!isReadOnly && caseData.status === CaseStatus.InProgress && (
