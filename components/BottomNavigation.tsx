@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { HomeIcon, ListTodoIcon, ClockIcon, CheckCircle2Icon, StarIcon, UserIcon } from './Icons';
+import { useSafeArea } from './SafeAreaProvider';
 
 interface TabItem {
   name: string;
@@ -12,6 +13,7 @@ interface TabItem {
 const BottomNavigation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { insets, isNative } = useSafeArea();
 
   const tabs: TabItem[] = [
     { name: 'Dashboard', route: '/', icon: HomeIcon, label: 'Home' },
@@ -28,23 +30,31 @@ const BottomNavigation: React.FC = () => {
     return false;
   };
 
+  const bottomPadding = isNative ? Math.max(4, insets.bottom) : 4;
+  const leftPadding = isNative ? Math.max(0, insets.left) : 0;
+  const rightPadding = isNative ? Math.max(0, insets.right) : 0;
+
   return (
-    <div style={{
-      backgroundColor: '#1f2937',
-      borderTop: '1px solid #374151',
-      height: '60px',
-      paddingBottom: '5px',
-      paddingTop: '5px',
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      alignItems: 'center',
-      position: 'fixed',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      zIndex: 1000
-    }}>
+    <div
+      className="mobile-bottom-nav"
+      style={{
+        backgroundColor: '#1f2937',
+        borderTop: '1px solid #374151',
+        height: '60px',
+        paddingBottom: isNative ? `${bottomPadding}px` : 'max(4px, env(safe-area-inset-bottom))',
+        paddingTop: '4px',
+        paddingLeft: isNative ? `${leftPadding}px` : 'env(safe-area-inset-left)',
+        paddingRight: isNative ? `${rightPadding}px` : 'env(safe-area-inset-right)',
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000
+      }}>
       {tabs.map((tab) => {
         const IconComponent = tab.icon;
         const active = isActive(tab.route);

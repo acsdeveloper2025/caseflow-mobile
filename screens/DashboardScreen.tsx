@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, ActivityIndicator, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { useCases } from '../context/CaseContext';
 import { useAuth } from '../context/AuthContext';
 import { CaseStatus } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCwIcon, UserIcon } from '../components/Icons';
+import { SafeAreaView } from '../components/SafeAreaProvider';
 
 
 interface StatCardProps {
@@ -65,9 +66,27 @@ const DashboardScreen: React.FC = () => {
   const savedCount = cases.filter(c => c.isSaved).length;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#111827' }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
-        <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+    <SafeAreaView
+      edges={['top', 'left', 'right']}
+      style={{ flex: 1, backgroundColor: '#111827' }}
+      className="mobile-content"
+    >
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: 'calc(80px + max(4px, env(safe-area-inset-bottom)))',
+          minHeight: '100%'
+        }}
+        className="custom-scrollbar"
+      >
+        <View
+          style={{
+            padding: 16,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+          className="mobile-padding"
+        >
           <View>
               <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#F9FAFB' }}>Welcome, {user?.name || 'Agent'}!</Text>
               <Text style={{ color: '#9CA3AF' }}>Here is your daily summary.</Text>
