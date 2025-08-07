@@ -33,8 +33,7 @@ export const requestCameraPermissions = async (): Promise<PermissionStatus> => {
       return {
         granted: cameraStatus === 'granted' && photosStatus === 'granted',
         denied: cameraStatus === 'denied' || photosStatus === 'denied',
-        prompt: cameraStatus === 'prompt' || photosStatus === 'prompt',
-        restricted: cameraStatus === 'restricted' || photosStatus === 'restricted'
+        prompt: cameraStatus === 'prompt' || photosStatus === 'prompt'
       };
     } else {
       // Web platform - check MediaDevices API
@@ -67,8 +66,7 @@ export const requestLocationPermissions = async (): Promise<PermissionStatus> =>
       return {
         granted: locationStatus === 'granted',
         denied: locationStatus === 'denied',
-        prompt: locationStatus === 'prompt',
-        restricted: locationStatus === 'restricted'
+        prompt: locationStatus === 'prompt'
       };
     } else {
       // Web platform - check Geolocation API

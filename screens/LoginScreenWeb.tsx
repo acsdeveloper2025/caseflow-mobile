@@ -188,10 +188,10 @@ const LoginScreenWeb: React.FC = () => {
                 outline: 'none'
               }}
               onMouseOver={(e) => {
-                if (!isLoading) e.target.style.backgroundColor = '#2563EB';
+                if (!isLoading) (e.target as HTMLElement).style.backgroundColor = '#2563EB';
               }}
               onMouseOut={(e) => {
-                if (!isLoading) e.target.style.backgroundColor = '#3B82F6';
+                if (!isLoading) (e.target as HTMLElement).style.backgroundColor = '#3B82F6';
               }}
             >
               {isLoading ? 'Logging in...' : 'Login'}
@@ -221,12 +221,12 @@ const LoginScreenWeb: React.FC = () => {
                 outline: 'none'
               }}
               onMouseOver={(e) => {
-                e.target.style.borderColor = '#3B82F6';
-                e.target.style.color = '#E5E7EB';
+                (e.target as HTMLElement).style.borderColor = '#3B82F6';
+                (e.target as HTMLElement).style.color = '#E5E7EB';
               }}
               onMouseOut={(e) => {
-                e.target.style.borderColor = '#374151';
-                e.target.style.color = '#9CA3AF';
+                (e.target as HTMLElement).style.borderColor = '#374151';
+                (e.target as HTMLElement).style.color = '#9CA3AF';
               }}
             >
               <span>📱</span>
