@@ -342,6 +342,7 @@ export const initialPositiveOfficeReport: PositiveOfficeReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialShiftedOfficeReport: ShiftedOfficeReportData = {
@@ -375,6 +376,7 @@ export const initialShiftedOfficeReport: ShiftedOfficeReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialNspOfficeReport: NspOfficeReportData = {
@@ -405,6 +407,7 @@ export const initialNspOfficeReport: NspOfficeReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialEntryRestrictedOfficeReport: EntryRestrictedOfficeReportData = {
@@ -427,6 +430,7 @@ export const initialEntryRestrictedOfficeReport: EntryRestrictedOfficeReportData
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialUntraceableOfficeReport: UntraceableOfficeReportData = {
@@ -442,6 +446,7 @@ export const initialUntraceableOfficeReport: UntraceableOfficeReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialPositiveBusinessReport: PositiveBusinessReportData = {
@@ -481,6 +486,7 @@ export const initialPositiveBusinessReport: PositiveBusinessReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialShiftedBusinessReport: ShiftedBusinessReportData = {
@@ -515,6 +521,7 @@ export const initialShiftedBusinessReport: ShiftedBusinessReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialNspBusinessReport: NspBusinessReportData = {
@@ -547,6 +554,7 @@ export const initialNspBusinessReport: NspBusinessReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialEntryRestrictedBusinessReport: EntryRestrictedBusinessReportData = {
@@ -568,6 +576,7 @@ export const initialEntryRestrictedBusinessReport: EntryRestrictedBusinessReport
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialUntraceableBusinessReport: UntraceableBusinessReportData = {
@@ -583,6 +592,7 @@ export const initialUntraceableBusinessReport: UntraceableBusinessReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialPositiveBuilderReport: PositiveBuilderReportData = {
@@ -622,6 +632,7 @@ export const initialPositiveBuilderReport: PositiveBuilderReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialShiftedBuilderReport: ShiftedBuilderReportData = {
@@ -656,6 +667,7 @@ export const initialShiftedBuilderReport: ShiftedBuilderReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialNspBuilderReport: NspBuilderReportData = {
@@ -688,6 +700,7 @@ export const initialNspBuilderReport: NspBuilderReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialEntryRestrictedBuilderReport: EntryRestrictedBuilderReportData = {
@@ -709,6 +722,7 @@ export const initialEntryRestrictedBuilderReport: EntryRestrictedBuilderReportDa
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialUntraceableBuilderReport: UntraceableBuilderReportData = {
@@ -724,6 +738,7 @@ export const initialUntraceableBuilderReport: UntraceableBuilderReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialPositiveNocReport: PositiveNocReportData = {
@@ -747,6 +762,7 @@ export const initialPositiveNocReport: PositiveNocReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialShiftedNocReport: ShiftedNocReportData = {
@@ -780,6 +796,7 @@ export const initialShiftedNocReport: ShiftedNocReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialNspNocReport: NspNocReportData = {
@@ -812,6 +829,7 @@ export const initialNspNocReport: NspNocReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialEntryRestrictedNocReport: EntryRestrictedNocReportData = {
@@ -833,6 +851,7 @@ export const initialEntryRestrictedNocReport: EntryRestrictedNocReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialUntraceableNocReport: UntraceableNocReportData = {
@@ -849,6 +868,7 @@ export const initialUntraceableNocReport: UntraceableNocReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialPositiveDsaReport: PositiveDsaReportData = {
@@ -888,6 +908,7 @@ export const initialPositiveDsaReport: PositiveDsaReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialShiftedDsaReport: ShiftedDsaReportData = {
@@ -922,6 +943,7 @@ export const initialShiftedDsaReport: ShiftedDsaReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialNspDsaReport: NspDsaReportData = {
@@ -954,6 +976,7 @@ export const initialNspDsaReport: NspDsaReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialEntryRestrictedDsaReport: EntryRestrictedDsaReportData = {
@@ -976,6 +999,7 @@ export const initialEntryRestrictedDsaReport: EntryRestrictedDsaReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialUntraceableDsaReport: UntraceableDsaReportData = {
@@ -991,6 +1015,7 @@ export const initialUntraceableDsaReport: UntraceableDsaReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialPositivePropertyApfReport: PositivePropertyApfReportData = {
@@ -1026,6 +1051,7 @@ export const initialPositivePropertyApfReport: PositivePropertyApfReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialNspPropertyApfReport: NspPropertyApfReportData = {
@@ -1059,6 +1085,7 @@ export const initialNspPropertyApfReport: NspPropertyApfReportData = {
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialEntryRestrictedPropertyApfReport: EntryRestrictedPropertyApfReportData = {
@@ -1084,6 +1111,7 @@ export const initialEntryRestrictedPropertyApfReport: EntryRestrictedPropertyApf
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialUntraceablePropertyApfReport: UntraceablePropertyApfReportData = {
@@ -1099,6 +1127,7 @@ export const initialUntraceablePropertyApfReport: UntraceablePropertyApfReportDa
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialPositivePropertyIndividualReport: PositivePropertyIndividualReportData = {
@@ -1134,6 +1163,7 @@ export const initialPositivePropertyIndividualReport: PositivePropertyIndividual
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialNspPropertyIndividualReport: NspPropertyIndividualReportData = {
@@ -1167,6 +1197,7 @@ export const initialNspPropertyIndividualReport: NspPropertyIndividualReportData
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialEntryRestrictedPropertyIndividualReport: EntryRestrictedPropertyIndividualReportData = {
@@ -1192,6 +1223,7 @@ export const initialEntryRestrictedPropertyIndividualReport: EntryRestrictedProp
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 export const initialUntraceablePropertyIndividualReport: UntraceablePropertyIndividualReportData = {
@@ -1207,6 +1239,7 @@ export const initialUntraceablePropertyIndividualReport: UntraceablePropertyIndi
     finalStatus: null,
     holdReason: '',
     images: [],
+    selfieImages: [],
 };
 
 const reportMap: { [key in VerificationType]?: { [key in VerificationOutcome]?: { key: keyof Case, data: any } } } = {

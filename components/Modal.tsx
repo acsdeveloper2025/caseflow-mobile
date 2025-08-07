@@ -7,9 +7,10 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
+  size?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isVisible, onClose, title, children }) => {
+const Modal: React.FC<ModalProps> = ({ isVisible, onClose, title, children, size }) => {
   return (
     <RNModal
       animationType="slide"
@@ -24,7 +25,7 @@ const Modal: React.FC<ModalProps> = ({ isVisible, onClose, title, children }) =>
         backgroundColor: 'rgba(0, 0, 0, 0.7)',
         padding: 16
       }}>
-        <SafeAreaView style={{ width: '100%', maxWidth: 500 }}>
+        <SafeAreaView style={{ width: '100%', maxWidth: size === 'large' ? 800 : 500 }}>
             <View style={{
               backgroundColor: '#1F2937',
               borderRadius: 8,

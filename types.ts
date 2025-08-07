@@ -270,6 +270,7 @@ export enum BusinessStatusErtResiCumOffice {
 export enum OfficeStatusOffice {
     Opened = 'Opened',
     Closed = 'Closed',
+    Shifted = 'Shifted',
 }
 
 export enum DesignationOffice {
@@ -1262,6 +1263,7 @@ export interface ShiftedNocReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface NspNocReportData {
@@ -1316,6 +1318,7 @@ export interface EntryRestrictedNocReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface UntraceableNocReportData {
@@ -1332,6 +1335,7 @@ export interface UntraceableNocReportData {
     finalStatus: FinalStatusUntraceable | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface PositiveDsaReportData {
@@ -1371,6 +1375,7 @@ export interface PositiveDsaReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface ShiftedDsaReportData {
@@ -1405,6 +1410,7 @@ export interface ShiftedDsaReportData {
     finalStatus: FinalStatusShiftedBusiness | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface NspDsaReportData {
@@ -1437,6 +1443,7 @@ export interface NspDsaReportData {
     finalStatus: FinalStatusShiftedBusiness | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface EntryRestrictedDsaReportData {
@@ -1459,6 +1466,7 @@ export interface EntryRestrictedDsaReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface UntraceableDsaReportData {
@@ -1474,6 +1482,7 @@ export interface UntraceableDsaReportData {
     finalStatus: FinalStatusUntraceable | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface PositivePropertyApfReportData {
@@ -1509,6 +1518,7 @@ export interface PositivePropertyApfReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface NspPropertyApfReportData {
@@ -1542,6 +1552,7 @@ export interface NspPropertyApfReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface EntryRestrictedPropertyApfReportData {
@@ -1567,6 +1578,7 @@ export interface EntryRestrictedPropertyApfReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface UntraceablePropertyApfReportData {
@@ -1652,6 +1664,7 @@ export interface NspPropertyIndividualReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface EntryRestrictedPropertyIndividualReportData {
@@ -1677,6 +1690,7 @@ export interface EntryRestrictedPropertyIndividualReportData {
     finalStatus: FinalStatus | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 export interface UntraceablePropertyIndividualReportData {
@@ -1692,6 +1706,7 @@ export interface UntraceablePropertyIndividualReportData {
     finalStatus: FinalStatusUntraceable | null;
     holdReason: string;
     images: CapturedImage[];
+    selfieImages: CapturedImage[];
 }
 
 
@@ -1720,6 +1735,7 @@ export interface Case {
   verificationType: VerificationType;
   verificationOutcome: VerificationOutcome | null;
   order?: number;
+  notes?: string;
   residenceReport?: ResidenceReportData;
   shiftedResidenceReport?: ShiftedResidenceReportData;
   nspResidenceReport?: NspResidenceReportData;
@@ -1770,5 +1786,11 @@ export interface User {
   name: string;
   username: string;
   profilePhotoUrl?: string;
+  profilePhoto?: string;
   idCardUrl?: string;
+  employeeId?: string;
+  designation?: string;
+  department?: string;
+  phone?: string;
+  email?: string;
 }

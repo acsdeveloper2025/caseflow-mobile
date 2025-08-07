@@ -5,7 +5,7 @@ import Spinner from '../components/Spinner';
 import { InfoIcon, ClipboardIcon } from '../components/Icons';
 import Modal from '../components/Modal';
 import AsyncStorage from '../polyfills/AsyncStorage';
-import * as Clipboard from '../polyfills/Clipboard';
+import { Clipboard } from '../polyfills/Clipboard';
 
 
 
@@ -55,9 +55,45 @@ const LoginScreen: React.FC = () => {
           style={{ flex: 1, justifyContent: 'center', padding: 16 }}
         >
           <View style={{ width: '100%', maxWidth: 400, marginHorizontal: 'auto' }}>
-            <View style={{ alignItems: 'center', marginBottom: 32 }}>
-              <Image source={{ uri: logoBase64 }} style={{ width: 192, height: 96 }} resizeMode="contain" />
-              <Text style={{ color: '#9CA3AF', marginTop: 16 }}>Your mobile workspace</Text>
+            {/* Company Logo Header */}
+            <View style={{ alignItems: 'center', marginBottom: 40 }}>
+              <View style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: 16,
+                padding: 20,
+                marginBottom: 20,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.15,
+                shadowRadius: 12,
+                elevation: 8
+              }}>
+                <Image
+                  source={require('../assets/company-logo-header.png')}
+                  style={{
+                    width: 240,
+                    height: 120,
+                    maxWidth: '100%'
+                  }}
+                  resizeMode="contain"
+                />
+              </View>
+              <Text style={{
+                color: '#E5E7EB',
+                fontSize: 18,
+                fontWeight: '600',
+                textAlign: 'center',
+                marginBottom: 8
+              }}>
+                CaseFlow Mobile
+              </Text>
+              <Text style={{
+                color: '#9CA3AF',
+                fontSize: 14,
+                textAlign: 'center'
+              }}>
+                Professional Verification Platform
+              </Text>
             </View>
             
             <View style={{

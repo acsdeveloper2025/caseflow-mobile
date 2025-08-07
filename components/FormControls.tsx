@@ -11,14 +11,15 @@ interface FormFieldProps {
   type?: string;
   placeholder?: string;
   disabled?: boolean;
+  className?: string;
 }
 
-export const FormField: React.FC<FormFieldProps> = ({ label, id, ...props }) => (
+export const FormField: React.FC<FormFieldProps> = ({ label, id, className, ...props }) => (
   <div>
     <label htmlFor={id} className="block text-sm font-medium text-medium-text mb-1">
       {label}
     </label>
-    <input id={id} className={commonInputClasses} {...props} />
+    <input id={id} className={`${commonInputClasses} ${className || ''}`} {...props} />
   </div>
 );
 
