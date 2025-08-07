@@ -14,18 +14,6 @@ import DigitalIdCardScreen from './screens/DigitalIdCardScreen';
 import BottomNavigation from './components/BottomNavigation';
 import { View } from 'react-native';
 
-const App: React.FC = () => {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <CaseProvider>
-          <AppNavigator />
-        </CaseProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  );
-};
-
 const AppNavigator: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -67,6 +55,18 @@ const AppNavigator: React.FC = () => {
       </Routes>
       {isAuthenticated && <BottomNavigation />}
     </>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <CaseProvider>
+          <AppNavigator />
+        </CaseProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 };
 

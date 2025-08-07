@@ -5,7 +5,7 @@ import Spinner from '../components/Spinner';
 import { InfoIcon, ClipboardIcon } from '../components/Icons';
 import Modal from '../components/Modal';
 import AsyncStorage from '../polyfills/AsyncStorage';
-import * as Clipboard from '../polyfills/Clipboard';
+import { Clipboard } from '../polyfills/Clipboard';
 
 
 

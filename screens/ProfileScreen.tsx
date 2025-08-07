@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Ionicons } from '@expo/vector-icons';
+
 import { toPng } from 'html-to-image';
 import { CameraIcon, IdCardIcon, LogOutIcon, UserIcon } from '../components/Icons';
 import Spinner from '../components/Spinner';
