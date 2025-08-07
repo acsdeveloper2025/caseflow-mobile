@@ -13,6 +13,7 @@ import ProfileScreen from './screens/ProfileScreen';
 import DigitalIdCardScreen from './screens/DigitalIdCardScreen';
 import BottomNavigation from './components/BottomNavigation';
 import SearchDemo from './components/SearchDemo';
+import AppHealthCheck from './components/AppHealthCheck';
 import { View } from 'react-native';
 
 const AppNavigator: React.FC = () => {
@@ -38,7 +39,7 @@ const AppNavigator: React.FC = () => {
         {isAuthenticated ? (
           <>
             <Route path="/" element={<DashboardScreen />} />
-            <Route path="/cases" element={<CaseListScreen title="All Cases" filter={() => true} emptyMessage="No cases available." />} />
+            <Route path="/cases" element={<CaseListScreen title="All Cases" filter={() => true} emptyMessage="No cases available." tabKey="all" searchPlaceholder="Search all cases..." />} />
             <Route path="/cases/assigned" element={<AssignedCasesScreen />} />
             <Route path="/cases/in-progress" element={<InProgressCasesScreen />} />
             <Route path="/cases/completed" element={<CompletedCasesScreen />} />
@@ -56,6 +57,7 @@ const AppNavigator: React.FC = () => {
       </Routes>
       {isAuthenticated && <BottomNavigation />}
       {isAuthenticated && <SearchDemo />}
+      <AppHealthCheck />
     </>
   );
 };
