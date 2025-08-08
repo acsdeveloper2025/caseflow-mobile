@@ -1,26 +1,15 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
-  Alert,
-  Share,
-  Platform,
 } from 'react-native';
-// import { SafeAreaView } from 'react-native-safe-area-context';
-// import { Ionicons } from '@expo/vector-icons';
-// import { captureRef } from 'react-native-view-shot';
-// import * as MediaLibrary from 'expo-media-library';
-// import * as FileSystem from 'expo-file-system';
 import DigitalIdCard from '../components/DigitalIdCard';
 import { useAuth } from '../context/AuthContext';
 
 const DigitalIdCardScreen: React.FC = () => {
   const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const cardRef = useRef<View>(null);
 
   // User profile data from authenticated user context
   const userProfile = {
@@ -34,32 +23,7 @@ const DigitalIdCardScreen: React.FC = () => {
     profilePhoto: user?.profilePhotoUrl,
   };
 
-  const handleSaveToGallery = async () => {
-    Alert.alert(
-      'Save to Gallery',
-      'This feature will be available in a future update when the app is deployed as a native mobile application.',
-      [{ text: 'OK' }]
-    );
-  };
 
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        message: `Digital Employee ID Card\n\nName: ${userProfile.fullName}\nEmployee ID: ${userProfile.employeeId}\nDesignation: ${userProfile.designation}\n\nAll Check Services LLP`,
-      });
-    } catch (error) {
-      console.error('Error sharing ID card:', error);
-      Alert.alert('Error', 'Failed to share ID card. Please try again.');
-    }
-  };
-
-  const handlePrint = () => {
-    Alert.alert(
-      'Print ID Card',
-      'This feature will be available in a future update. For now, you can save the ID card to your gallery and print it from there.',
-      [{ text: 'OK' }]
-    );
-  };
 
   return (
     <View style={styles.container}>
@@ -77,39 +41,7 @@ const DigitalIdCardScreen: React.FC = () => {
 
         {/* ID Card Display */}
         <View style={styles.cardSection}>
-          <View ref={cardRef} style={styles.cardWrapper}>
-            <DigitalIdCard userProfile={userProfile} />
-          </View>
-        </View>
-
-        {/* Action Buttons */}
-        <View style={styles.actionsSection}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.primaryButton]}
-            onPress={handleSaveToGallery}
-            disabled={isLoading}
-          >
-            <Text style={{ color: '#FFFFFF', fontSize: 20 }}>💾</Text>
-            <Text style={styles.primaryButtonText}>Save to Gallery</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionButton, styles.secondaryButton]}
-            onPress={handleShare}
-            disabled={isLoading}
-          >
-            <Text style={{ color: '#10B981', fontSize: 20 }}>📤</Text>
-            <Text style={styles.secondaryButtonText}>Share</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionButton, styles.secondaryButton]}
-            onPress={handlePrint}
-            disabled={isLoading}
-          >
-            <Text style={{ color: '#10B981', fontSize: 20 }}>🖨️</Text>
-            <Text style={styles.secondaryButtonText}>Print</Text>
-          </TouchableOpacity>
+          <DigitalIdCard userProfile={userProfile} />
         </View>
 
         {/* Information Section */}
@@ -120,9 +52,9 @@ const DigitalIdCardScreen: React.FC = () => {
               <Text style={styles.infoTitle}>How to Use Your Digital ID</Text>
               <Text style={styles.infoText}>
                 • Show this digital ID to clients and authorities for verification{'\n'}
-                • Save to your gallery for offline access{'\n'}
-                • Share with colleagues or supervisors when needed{'\n'}
-                • Keep your profile updated for accurate information
+                • Access your ID card anytime through this app{'\n'}
+                • Keep your profile updated for accurate information{'\n'}
+                • Use for official identification purposes
               </Text>
             </View>
           </View>
@@ -180,42 +112,6 @@ const styles = StyleSheet.create({
   cardSection: {
     alignItems: 'center',
     marginBottom: 30,
-  },
-  cardWrapper: {
-    // This wrapper helps with the screenshot capture
-  },
-  actionsSection: {
-    paddingHorizontal: 20,
-    marginBottom: 30,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  primaryButton: {
-    backgroundColor: '#10B981',
-  },
-  secondaryButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#10B981',
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  secondaryButtonText: {
-    color: '#10B981',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
   },
   infoSection: {
     paddingHorizontal: 20,
