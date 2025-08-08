@@ -1,6 +1,9 @@
 import React from 'react';
 
-const commonInputClasses = "shadow-sm appearance-none border border-dark-border rounded w-full py-2 px-3 bg-gray-700 text-light-text leading-tight focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent disabled:opacity-70 disabled:bg-gray-800";
+const commonInputClasses = "shadow-sm appearance-none border border-dark-border rounded w-full py-2 px-3 bg-gray-700 text-light-text leading-tight focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent disabled:opacity-70 disabled:bg-gray-800 disabled:cursor-not-allowed";
+
+const getReadOnlyClasses = (disabled?: boolean) =>
+  disabled ? "bg-gray-800 text-gray-400 border-gray-600 cursor-not-allowed" : "";
 
 interface FormFieldProps {
   label: string;
@@ -14,12 +17,12 @@ interface FormFieldProps {
   className?: string;
 }
 
-export const FormField: React.FC<FormFieldProps> = ({ label, id, className, ...props }) => (
+export const FormField: React.FC<FormFieldProps> = ({ label, id, className, disabled, ...props }) => (
   <div>
-    <label htmlFor={id} className="block text-sm font-medium text-medium-text mb-1">
-      {label}
+    <label htmlFor={id} className={`block text-sm font-medium mb-1 ${disabled ? 'text-gray-500' : 'text-medium-text'}`}>
+      {label} {disabled && <span className="text-xs text-gray-500">(Read Only)</span>}
     </label>
-    <input id={id} className={`${commonInputClasses} ${className || ''}`} {...props} />
+    <input id={id} className={`${commonInputClasses} ${getReadOnlyClasses(disabled)} ${className || ''}`} disabled={disabled} {...props} />
   </div>
 );
 
@@ -33,12 +36,12 @@ interface SelectFieldProps {
   disabled?: boolean;
 }
 
-export const SelectField: React.FC<SelectFieldProps> = ({ label, id, ...props }) => (
+export const SelectField: React.FC<SelectFieldProps> = ({ label, id, disabled, ...props }) => (
   <div>
-    <label htmlFor={id} className="block text-sm font-medium text-medium-text mb-1">
-      {label}
+    <label htmlFor={id} className={`block text-sm font-medium mb-1 ${disabled ? 'text-gray-500' : 'text-medium-text'}`}>
+      {label} {disabled && <span className="text-xs text-gray-500">(Read Only)</span>}
     </label>
-    <select id={id} className={commonInputClasses} {...props} />
+    <select id={id} className={`${commonInputClasses} ${getReadOnlyClasses(disabled)}`} disabled={disabled} {...props} />
   </div>
 );
 
@@ -53,12 +56,12 @@ interface TextAreaProps {
   disabled?: boolean;
 }
 
-export const TextAreaField: React.FC<TextAreaProps> = ({ label, id, rows = 3, ...props }) => (
+export const TextAreaField: React.FC<TextAreaProps> = ({ label, id, rows = 3, disabled, ...props }) => (
   <div>
-    <label htmlFor={id} className="block text-sm font-medium text-medium-text mb-1">
-      {label}
+    <label htmlFor={id} className={`block text-sm font-medium mb-1 ${disabled ? 'text-gray-500' : 'text-medium-text'}`}>
+      {label} {disabled && <span className="text-xs text-gray-500">(Read Only)</span>}
     </label>
-    <textarea id={id} rows={rows} className={commonInputClasses} {...props} />
+    <textarea id={id} rows={rows} className={`${commonInputClasses} ${getReadOnlyClasses(disabled)}`} disabled={disabled} {...props} />
   </div>
 );
 
@@ -80,6 +83,7 @@ export const NumberDropdownField: React.FC<NumberDropdownFieldProps> = ({
   min,
   max,
   placeholder = "Select...",
+  disabled,
   ...props
 }) => {
   // Generate number options from min to max
@@ -94,10 +98,10 @@ export const NumberDropdownField: React.FC<NumberDropdownFieldProps> = ({
 
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-medium-text mb-1">
-        {label}
+      <label htmlFor={id} className={`block text-sm font-medium mb-1 ${disabled ? 'text-gray-500' : 'text-medium-text'}`}>
+        {label} {disabled && <span className="text-xs text-gray-500">(Read Only)</span>}
       </label>
-      <select id={id} className={commonInputClasses} {...props}>
+      <select id={id} className={`${commonInputClasses} ${getReadOnlyClasses(disabled)}`} disabled={disabled} {...props}>
         <option value="">{placeholder}</option>
         {numberOptions}
       </select>
