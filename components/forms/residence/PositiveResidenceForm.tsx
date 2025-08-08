@@ -10,6 +10,7 @@ import { FormField, SelectField, TextAreaField, NumberDropdownField } from '../.
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
+import ReadOnlyIndicator from '../../ReadOnlyIndicator';
 
 interface PositiveResidenceFormProps {
   caseData: Case;
@@ -164,7 +165,14 @@ const PositiveResidenceForm: React.FC<PositiveResidenceFormProps> = ({ caseData 
 
   return (
     <div className="space-y-4 pt-4 border-t border-dark-border">
-      <h3 className="text-lg font-semibold text-brand-primary">Positive Residence Report</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-brand-primary">Positive Residence Report</h3>
+        <ReadOnlyIndicator
+          isReadOnly={isReadOnly}
+          caseStatus={caseData.status}
+          isSaved={caseData.isSaved}
+        />
+      </div>
       
       {/* Customer Information Section */}
       <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border">

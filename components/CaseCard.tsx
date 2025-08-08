@@ -377,9 +377,9 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
   return (
     <>
     <div className={`bg-dark-card rounded-lg shadow-lg mb-4 mx-4 p-4 transition-all duration-300 ${statusColor[caseData.status]} ${hasAutoSaveData ? 'ring-2 ring-yellow-400 bg-yellow-50/5' : ''}`}>
-      <div 
-        className={`flex justify-between items-start ${caseData.status !== CaseStatus.Assigned ? 'cursor-pointer' : ''}`}
-        onClick={caseData.status !== CaseStatus.Assigned ? () => setIsExpanded(!isExpanded) : undefined}
+      <div
+        className={`flex justify-between items-start ${(caseData.status !== CaseStatus.Assigned && caseData.status !== CaseStatus.Completed && !caseData.isSaved) ? 'cursor-pointer' : ''}`}
+        onClick={(caseData.status !== CaseStatus.Assigned && caseData.status !== CaseStatus.Completed && !caseData.isSaved) ? () => setIsExpanded(!isExpanded) : undefined}
       >
         <div className="flex-1">
           <div className="flex justify-between items-start">
@@ -521,15 +521,15 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
                   </button>
               )}
 
-              <button onClick={() => setIsExpanded(!isExpanded)} className="flex items-center text-medium-text p-2 rounded-md hover:bg-white/10">
-                  {isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                  <span className="text-xs ml-1">
-                      {isExpanded
-                          ? 'Hide Details'
-                          : (caseData.status === CaseStatus.Completed || caseData.isSaved) ? 'Show Details' : 'Select Outcome'
-                      }
-                  </span>
-              </button>
+              {/* Only show expand/collapse button for non-completed and non-saved cases */}
+              {!(caseData.status === CaseStatus.Completed || caseData.isSaved) && (
+                <button onClick={() => setIsExpanded(!isExpanded)} className="flex items-center text-medium-text p-2 rounded-md hover:bg-white/10">
+                    {isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                    <span className="text-xs ml-1">
+                        {isExpanded ? 'Hide Details' : 'Select Outcome'}
+                    </span>
+                </button>
+              )}
             </div>
         </div>
         )}
