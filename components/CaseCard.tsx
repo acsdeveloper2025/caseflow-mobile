@@ -496,7 +496,7 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
                       <ArrowDownIcon />
                   </button>
                 </div>
-              ) : isCompletedOrSaved ? (
+              ) : (caseData.isSaved && caseData.status !== CaseStatus.Completed) ? (
                 <button
                     onClick={handleSummarizeReport}
                     className="flex items-center gap-1 text-purple-400 hover:text-purple-300 transition-colors p-2 rounded-md hover:bg-white/10"
