@@ -10,6 +10,8 @@ import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
+import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
+import { FORM_TYPES } from '../../../constants/formTypes';
 
 interface PositiveNegativePropertyApfFormProps {
   caseData: Case;
@@ -44,14 +46,45 @@ const PositiveNegativePropertyApfForm: React.FC<PositiveNegativePropertyApfFormP
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>(VerificationStatus.Positive);
   const [constructionActivity, setConstructionActivity] = useState<ConstructionActivity>(ConstructionActivity.Seen);
   const [companyNameBoard, setCompanyNameBoard] = useState<CompanyNameBoard>(CompanyNameBoard.NotSighted);
-  
+
   // Determine which report to use based on current verification status
-  const report = verificationStatus === VerificationStatus.Positive 
-    ? caseData.positivePropertyApfReport 
+  const report = verificationStatus === VerificationStatus.Positive
+    ? caseData.positivePropertyApfReport
     : caseData.nspPropertyApfReport;
-    
+
   const isReadOnly = caseData.status === CaseStatus.Completed || caseData.isSaved;
   const MIN_IMAGES = 5;
+
+  // Auto-save handlers
+  const handleFormDataChange = (formData: any) => {
+    if (!isReadOnly) {
+      if (verificationStatus === VerificationStatus.Positive) {
+        updatePositivePropertyApfReport(caseData.id, formData);
+      } else {
+        updateNspPropertyApfReport(caseData.id, formData);
+      }
+    }
+  };
+
+  const handleAutoSaveImagesChange = (images: CapturedImage[]) => {
+    if (!isReadOnly && report) {
+      if (verificationStatus === VerificationStatus.Positive) {
+        updatePositivePropertyApfReport(caseData.id, { ...report, images });
+      } else {
+        updateNspPropertyApfReport(caseData.id, { ...report, images });
+      }
+    }
+  };
+
+  const handleDataRestored = (data: any) => {
+    if (!isReadOnly && data.formData) {
+      if (verificationStatus === VerificationStatus.Positive) {
+        updatePositivePropertyApfReport(caseData.id, data.formData);
+      } else {
+        updateNspPropertyApfReport(caseData.id, data.formData);
+      }
+    }
+  };
 
   if (!report) {
     return <p className="text-medium-text">No Property APF report data available.</p>;
@@ -181,7 +214,21 @@ const PositiveNegativePropertyApfForm: React.FC<PositiveNegativePropertyApfFormP
   }), []);
 
   return (
-    <div className="space-y-4 pt-4 border-t border-dark-border">
+    <AutoSaveFormWrapper
+      caseId={caseData.id}
+      formType={verificationStatus === VerificationStatus.Positive ? FORM_TYPES.PROPERTY_APF_POSITIVE : FORM_TYPES.PROPERTY_APF_NSP}
+      formData={report}
+      images={report?.images || []}
+      onFormDataChange={handleFormDataChange}
+      onImagesChange={handleAutoSaveImagesChange}
+      onDataRestored={handleDataRestored}
+      autoSaveOptions={{
+        enableAutoSave: !isReadOnly,
+        showIndicator: !isReadOnly,
+        showRecoveryModal: !isReadOnly,
+      }}
+    >
+      <div className="space-y-4 pt-4 border-t border-dark-border">
       <h3 className="text-lg font-semibold text-brand-primary">Property APF Positive & Negative Report</h3>
 
       {/* Customer Information Section */}
@@ -469,6 +516,10 @@ const PositiveNegativePropertyApfForm: React.FC<PositiveNegativePropertyApfFormP
                 }}
                 onConfirm={() => {
                     updateCaseStatus(caseData.id, CaseStatus.Completed);
+                    // Mark auto-save as completed
+                    if ((window as any).markAutoSaveFormCompleted) {
+                      (window as any).markAutoSaveFormCompleted();
+                    }
                     setIsConfirmModalOpen(false);
                 }}
                 title="Submit or Save Case"
@@ -481,7 +532,8 @@ const PositiveNegativePropertyApfForm: React.FC<PositiveNegativePropertyApfFormP
             </ConfirmationModal>
           </>
       )}
-    </div>
+      </div>
+    </AutoSaveFormWrapper>
   );
 };
 

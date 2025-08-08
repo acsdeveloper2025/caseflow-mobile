@@ -10,6 +10,8 @@ import { FormField, SelectField, TextAreaField, NumberDropdownField } from '../.
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
+import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
+import { FORM_TYPES } from '../../../constants/formTypes';
 
 interface PositiveResiCumOfficeFormProps {
   caseData: Case;
@@ -25,6 +27,25 @@ const PositiveResiCumOfficeForm: React.FC<PositiveResiCumOfficeFormProps> = ({ c
   const report = caseData.resiCumOfficeReport;
   const isReadOnly = caseData.status === CaseStatus.Completed || caseData.isSaved;
   const MIN_IMAGES = 5;
+
+  // Auto-save handlers
+  const handleFormDataChange = (formData: any) => {
+    if (!isReadOnly) {
+      updateResiCumOfficeReport(caseData.id, formData);
+    }
+  };
+
+  const handleAutoSaveImagesChange = (images: CapturedImage[]) => {
+    if (!isReadOnly && report) {
+      updateResiCumOfficeReport(caseData.id, { ...report, images });
+    }
+  };
+
+  const handleDataRestored = (data: any) => {
+    if (!isReadOnly && data.formData) {
+      updateResiCumOfficeReport(caseData.id, data.formData);
+    }
+  };
 
   if (!report) {
     return <p className="text-medium-text">No Resi-cum-Office report data available for this case.</p>;
@@ -140,7 +161,21 @@ const PositiveResiCumOfficeForm: React.FC<PositiveResiCumOfficeFormProps> = ({ c
   }), []);
 
   return (
-    <div className="space-y-4 pt-4 border-t border-dark-border">
+    <AutoSaveFormWrapper
+      caseId={caseData.id}
+      formType={FORM_TYPES.RESIDENCE_CUM_OFFICE_POSITIVE}
+      formData={report}
+      images={report?.images || []}
+      onFormDataChange={handleFormDataChange}
+      onImagesChange={handleAutoSaveImagesChange}
+      onDataRestored={handleDataRestored}
+      autoSaveOptions={{
+        enableAutoSave: !isReadOnly,
+        showIndicator: !isReadOnly,
+        showRecoveryModal: !isReadOnly,
+      }}
+    >
+      <div className="space-y-4 pt-4 border-t border-dark-border">
       <h3 className="text-lg font-semibold text-brand-primary">Positive Residence-cum-Office Report</h3>
 
       {/* Customer Information Section */}
@@ -433,6 +468,10 @@ const PositiveResiCumOfficeForm: React.FC<PositiveResiCumOfficeFormProps> = ({ c
                 }}
                 onConfirm={() => {
                     updateCaseStatus(caseData.id, CaseStatus.Completed);
+                    // Mark auto-save as completed
+                    if ((window as any).markAutoSaveFormCompleted) {
+                      (window as any).markAutoSaveFormCompleted();
+                    }
                     setIsConfirmModalOpen(false);
                 }}
                 title="Submit or Save Case"
@@ -445,7 +484,8 @@ const PositiveResiCumOfficeForm: React.FC<PositiveResiCumOfficeFormProps> = ({ c
             </ConfirmationModal>
           </>
       )}
-    </div>
+      </div>
+    </AutoSaveFormWrapper>
   );
 };
 

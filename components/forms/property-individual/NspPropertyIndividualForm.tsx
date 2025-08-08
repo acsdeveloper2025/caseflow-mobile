@@ -9,6 +9,8 @@ import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
+import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
+import { FORM_TYPES } from '../../../constants/formTypes';
 
 interface NspPropertyIndividualFormProps {
   caseData: Case;
@@ -24,6 +26,25 @@ const NspPropertyIndividualForm: React.FC<NspPropertyIndividualFormProps> = ({ c
   const report = caseData.nspPropertyIndividualReport;
   const isReadOnly = caseData.status === CaseStatus.Completed || caseData.isSaved;
   const MIN_IMAGES = 5;
+
+  // Auto-save handlers
+  const handleFormDataChange = (formData: any) => {
+    if (!isReadOnly) {
+      updateNspPropertyIndividualReport(caseData.id, formData);
+    }
+  };
+
+  const handleAutoSaveImagesChange = (images: CapturedImage[]) => {
+    if (!isReadOnly && report) {
+      updateNspPropertyIndividualReport(caseData.id, { ...report, images });
+    }
+  };
+
+  const handleDataRestored = (data: any) => {
+    if (!isReadOnly && data.formData) {
+      updateNspPropertyIndividualReport(caseData.id, data.formData);
+    }
+  };
 
   if (!report) {
     return <p className="text-medium-text">No NSP Property (Individual) report data available.</p>;
@@ -109,7 +130,21 @@ const NspPropertyIndividualForm: React.FC<NspPropertyIndividualFormProps> = ({ c
   }), []);
 
   return (
-    <div className="space-y-4 pt-4 border-t border-dark-border">
+    <AutoSaveFormWrapper
+      caseId={caseData.id}
+      formType={FORM_TYPES.PROPERTY_INDIVIDUAL_NSP}
+      formData={report}
+      images={report?.images || []}
+      onFormDataChange={handleFormDataChange}
+      onImagesChange={handleAutoSaveImagesChange}
+      onDataRestored={handleDataRestored}
+      autoSaveOptions={{
+        enableAutoSave: !isReadOnly,
+        showIndicator: !isReadOnly,
+        showRecoveryModal: !isReadOnly,
+      }}
+    >
+      <div className="space-y-4 pt-4 border-t border-dark-border">
       <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border mb-4">
         <h5 className="font-semibold text-brand-primary">Case Details</h5>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -239,6 +274,10 @@ const NspPropertyIndividualForm: React.FC<NspPropertyIndividualFormProps> = ({ c
                 }}
                 onConfirm={() => {
                     updateCaseStatus(caseData.id, CaseStatus.Completed);
+                    // Mark auto-save as completed
+                    if ((window as any).markAutoSaveFormCompleted) {
+                      (window as any).markAutoSaveFormCompleted();
+                    }
                     setIsConfirmModalOpen(false);
                 }}
                 title="Submit or Save Case"
@@ -251,7 +290,8 @@ const NspPropertyIndividualForm: React.FC<NspPropertyIndividualFormProps> = ({ c
             </ConfirmationModal>
           </>
       )}
-    </div>
+      </div>
+    </AutoSaveFormWrapper>
   );
 };
 
