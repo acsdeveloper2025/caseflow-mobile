@@ -61,3 +61,46 @@ export const TextAreaField: React.FC<TextAreaProps> = ({ label, id, rows = 3, ..
     <textarea id={id} rows={rows} className={commonInputClasses} {...props} />
   </div>
 );
+
+interface NumberDropdownFieldProps {
+  label: string;
+  id: string;
+  name: string;
+  value: string | number;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  min: number;
+  max: number;
+  disabled?: boolean;
+  placeholder?: string;
+}
+
+export const NumberDropdownField: React.FC<NumberDropdownFieldProps> = ({
+  label,
+  id,
+  min,
+  max,
+  placeholder = "Select...",
+  ...props
+}) => {
+  // Generate number options from min to max
+  const numberOptions = [];
+  for (let i = min; i <= max; i++) {
+    numberOptions.push(
+      <option key={i} value={i}>
+        {i}
+      </option>
+    );
+  }
+
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm font-medium text-medium-text mb-1">
+        {label}
+      </label>
+      <select id={id} className={commonInputClasses} {...props}>
+        <option value="">{placeholder}</option>
+        {numberOptions}
+      </select>
+    </div>
+  );
+};

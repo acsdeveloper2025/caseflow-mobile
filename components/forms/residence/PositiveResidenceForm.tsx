@@ -6,7 +6,7 @@ import {
   FinalStatus, CaseStatus, CapturedImage
 } from '../../../types';
 import { useCases } from '../../../context/CaseContext';
-import { FormField, SelectField, TextAreaField } from '../../FormControls';
+import { FormField, SelectField, TextAreaField, NumberDropdownField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
@@ -120,7 +120,7 @@ const PositiveResidenceForm: React.FC<PositiveResidenceFormProps> = ({ caseData 
     }
 
     // Handle number fields
-    if (['totalFamilyMembers', 'totalEarning', 'applicantAge', 'approxArea'].includes(name)) {
+    if (['totalFamilyMembers', 'totalEarning', 'applicantAge', 'approxArea', 'applicantStayingFloor', 'addressStructure'].includes(name)) {
         processedValue = value === '' ? null : Number(value);
     }
 
@@ -236,7 +236,7 @@ const PositiveResidenceForm: React.FC<PositiveResidenceFormProps> = ({ caseData 
               <option value="">Select...</option>
               {options.relation}
             </SelectField>
-            <FormField label="Total Family Members" id="totalFamilyMembers" name="totalFamilyMembers" type="number" value={report.totalFamilyMembers || ''} onChange={handleChange} disabled={isReadOnly} />
+            <NumberDropdownField label="Total Family Members" id="totalFamilyMembers" name="totalFamilyMembers" value={report.totalFamilyMembers || ''} onChange={handleChange} min={1} max={20} disabled={isReadOnly} />
             <FormField label="Total Earning (₹)" id="totalEarning" name="totalEarning" type="number" value={report.totalEarning || ''} onChange={handleChange} disabled={isReadOnly} />
             <FormField label="Applicant DOB" id="applicantDob" name="applicantDob" type="date" value={report.applicantDob} onChange={handleChange} disabled={isReadOnly} />
             <FormField label="Applicant Age" id="applicantAge" name="applicantAge" type="number" value={report.applicantAge || ''} onChange={handleChange} disabled={true} />
@@ -317,8 +317,8 @@ const PositiveResidenceForm: React.FC<PositiveResidenceFormProps> = ({ caseData 
             <option value="">Select...</option>
             {options.localityType}
           </SelectField>
-          <FormField label="Address Structure" id="addressStructure" name="addressStructure" value={report.addressStructure} onChange={handleChange} placeholder="e.g., G+7" disabled={isReadOnly} />
-          <FormField label="Applicant Staying Floor" id="applicantStayingFloor" name="applicantStayingFloor" value={report.applicantStayingFloor} onChange={handleChange} placeholder="e.g., 4" disabled={isReadOnly} />
+          <NumberDropdownField label="Address Structure" id="addressStructure" name="addressStructure" value={report.addressStructure || ''} onChange={handleChange} min={1} max={150} disabled={isReadOnly} />
+          <NumberDropdownField label="Applicant Staying Floor" id="applicantStayingFloor" name="applicantStayingFloor" value={report.applicantStayingFloor || ''} onChange={handleChange} min={1} max={150} disabled={isReadOnly} />
           <FormField label="Address Structure Color" id="addressStructureColor" name="addressStructureColor" value={report.addressStructureColor} onChange={handleChange} disabled={isReadOnly} />
           <FormField label="Door Color" id="doorColor" name="doorColor" value={report.doorColor} onChange={handleChange} disabled={isReadOnly} />
         </div>
