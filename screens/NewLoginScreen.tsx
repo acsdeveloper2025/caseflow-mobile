@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
-import { View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import DeviceAuthentication from '../components/DeviceAuthentication';
 

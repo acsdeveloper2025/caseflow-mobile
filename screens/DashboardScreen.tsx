@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext';
 import { CaseStatus } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCwIcon, UserIcon } from '../components/Icons';
-import { View } from 'react-native';
 
 
 interface StatCardProps {

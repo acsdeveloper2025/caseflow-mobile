@@ -16,6 +16,8 @@ module.exports = {
     extend: {
       colors: {
         'dark-bg': '#111827',
+        'dark-card': '#1F2937',
+        'dark-border': '#374151',
         'medium-text': '#9CA3AF',
         'light-text': '#F9FAFB',
         'primary': '#00a950',
@@ -24,6 +26,10 @@ module.exports = {
         'danger': '#EF4444',
         'warning': '#F59E0B',
         'success': '#10B981',
+        'brand': {
+          'primary': '#00a950',
+          'secondary': '#008a44',
+        },
       },
       fontFamily: {
         'sans': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
