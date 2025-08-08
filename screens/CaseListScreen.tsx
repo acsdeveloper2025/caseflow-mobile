@@ -18,6 +18,7 @@ interface CaseListScreenProps {
   isReorderable?: boolean;
   tabKey: string; // Unique identifier for search state management
   searchPlaceholder?: string;
+  customHeaderActions?: React.ReactNode;
 }
 
 const CaseListScreen: React.FC<CaseListScreenProps> = ({
@@ -27,7 +28,8 @@ const CaseListScreen: React.FC<CaseListScreenProps> = ({
   sort,
   isReorderable = false,
   tabKey,
-  searchPlaceholder = "Search cases..."
+  searchPlaceholder = "Search cases...",
+  customHeaderActions
 }) => {
   const { cases, loading } = useCases();
   const navigate = useNavigate();
@@ -109,8 +111,13 @@ const CaseListScreen: React.FC<CaseListScreenProps> = ({
         resultCount={resultCount}
         totalCount={totalCount}
       />
+      {customHeaderActions && (
+        <div style={{ paddingHorizontal: 16, marginBottom: 8 }}>
+          {customHeaderActions}
+        </div>
+      )}
     </>
-  ), [searchQuery, searchPlaceholder, resultCount, totalCount]);
+  ), [searchQuery, searchPlaceholder, resultCount, totalCount, customHeaderActions]);
 
   if (loading) {
     return (

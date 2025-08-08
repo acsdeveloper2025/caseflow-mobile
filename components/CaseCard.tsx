@@ -5,6 +5,7 @@ import { summarizeReport } from '../services/geminiService';
 import { SparklesIcon, ChevronDownIcon, ChevronUpIcon, CheckIcon, XIcon, InfoIcon, ArrowUpIcon, ArrowDownIcon } from './Icons';
 import Spinner from './Spinner';
 import Modal from './Modal';
+import PriorityInput from './PriorityInput';
 import { useCaseAutoSaveStatus } from '../hooks/useCaseAutoSaveStatus';
 import PositiveResidenceForm from './forms/residence/PositiveResidenceForm';
 import ShiftedResidenceForm from './forms/residence/ShiftedResidenceForm';
@@ -396,7 +397,13 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
               </div>
               {timestamp.value && <p className="text-xs text-gray-400 text-right shrink-0 ml-2">{`${timestamp.label}`}<br/>{`${timestamp.value}`}</p>}
           </div>
-          <p className="text-sm text-medium-text mt-1">{caseData.customer.name} - {caseData.id}</p>
+          <div className="flex justify-between items-center mt-1">
+            <p className="text-sm text-medium-text">{caseData.customer.name} - {caseData.id}</p>
+            {/* Show priority input only for In Progress cases */}
+            {caseData.status === CaseStatus.InProgress && !caseData.isSaved && (
+              <PriorityInput caseId={caseData.id} />
+            )}
+          </div>
         </div>
       </div>
 

@@ -1735,6 +1735,7 @@ export interface Case {
   verificationType: VerificationType;
   verificationOutcome: VerificationOutcome | null;
   order?: number;
+  priority?: number; // User-defined priority for In Progress cases (1, 2, 3, etc.)
   notes?: string;
   residenceReport?: ResidenceReportData;
   shiftedResidenceReport?: ShiftedResidenceReportData;
