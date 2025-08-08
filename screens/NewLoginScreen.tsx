@@ -8,7 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
-import { SafeAreaView } from '../components/SafeAreaProvider';
+import { View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import DeviceAuthentication from '../components/DeviceAuthentication';
 
@@ -60,7 +60,7 @@ const NewLoginScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView
+    <View
       style={{ flex: 1, backgroundColor: '#111827' }}
       className="mobile-container ios-viewport-fix"
     >
@@ -241,7 +241,7 @@ const NewLoginScreen: React.FC = () => {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 

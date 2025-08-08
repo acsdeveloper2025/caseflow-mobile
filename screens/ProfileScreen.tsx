@@ -47,8 +47,8 @@ const ProfileScreen: React.FC = () => {
   }, [idCardRef, user, updateUserProfile]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#111827', paddingTop: 40 }}>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 32, paddingBottom: 100 }}>
+    <View style={{ flex: 1, backgroundColor: '#111827' }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 8, paddingBottom: 100 }}>
         <View style={{ alignItems: 'center' }}>
           <View style={{
             position: 'relative',

@@ -80,7 +80,7 @@ const CaseListScreen: React.FC<CaseListScreenProps> = ({
   );
 
   const renderHeader = () => (
-    <View style={{ paddingHorizontal: 16, paddingTop: 20, marginBottom: 16 }}>
+    <View style={{ paddingHorizontal: 16, paddingTop: 8, marginBottom: 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
         <TouchableOpacity
           onPress={() => navigate('/')}
@@ -114,17 +114,17 @@ const CaseListScreen: React.FC<CaseListScreenProps> = ({
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#111827' }}>
+      <View style={{ flex: 1, backgroundColor: '#111827' }}>
         {renderHeader()}
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#00a950" />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#111827' }}>
+    <View style={{ flex: 1, backgroundColor: '#111827' }}>
       <FlatList
         data={processedCases}
         renderItem={({ item, index }: { item: Case, index: number }) => (
@@ -138,9 +138,9 @@ const CaseListScreen: React.FC<CaseListScreenProps> = ({
         keyExtractor={(item: Case) => item.id}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={renderEmpty}
-        contentContainerStyle={{ paddingBottom: 100, paddingTop: 20 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

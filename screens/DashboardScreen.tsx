@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { CaseStatus } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCwIcon, UserIcon } from '../components/Icons';
-import { SafeAreaView } from '../components/SafeAreaProvider';
+import { View } from 'react-native';
 
 
 interface StatCardProps {
@@ -66,11 +66,7 @@ const DashboardScreen: React.FC = () => {
   const savedCount = cases.filter(c => c.isSaved).length;
 
   return (
-    <SafeAreaView
-      edges={['top', 'left', 'right']}
-      style={{ flex: 1, backgroundColor: '#111827' }}
-      className="mobile-content"
-    >
+    <View style={{ flex: 1, backgroundColor: '#111827' }} className="mobile-content">
       <ScrollView
         contentContainerStyle={{
           paddingBottom: 'calc(80px + max(4px, env(safe-area-inset-bottom)))',
@@ -156,7 +152,7 @@ const DashboardScreen: React.FC = () => {
         </>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
