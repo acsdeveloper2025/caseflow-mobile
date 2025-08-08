@@ -1,22 +1,16 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-import { toPng } from 'html-to-image';
-import { CameraIcon, IdCardIcon, LogOutIcon, UserIcon } from '../components/Icons';
-import Spinner from '../components/Spinner';
+import { CameraIcon, LogOutIcon, UserIcon } from '../components/Icons';
 import Modal from '../components/Modal';
 import ProfilePhotoCapture from '../components/ProfilePhotoCapture';
-import IdCard from '../components/IdCard';
 
 const ProfileScreen: React.FC = () => {
   const { user, logout, updateUserProfile } = useAuth();
   const navigate = useNavigate();
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
-  const [isIdCardModalOpen, setIsIdCardModalOpen] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const idCardRef = useRef<HTMLDivElement>(null);
 
   const handlePhotoSave = async (dataUrl: string) => {
     await updateUserProfile({ profilePhotoUrl: dataUrl });
@@ -26,25 +20,6 @@ const ProfileScreen: React.FC = () => {
   const handleNavigateToDigitalId = () => {
     navigate('/digital-id-card');
   };
-
-  const handleGenerateIdCard = useCallback(async () => {
-    if (!idCardRef.current || !user?.profilePhotoUrl) {
-      Alert.alert("Profile Photo Required", "Please upload a profile photo before generating an ID card.");
-      return;
-    }
-    setIsGenerating(true);
-    try {
-      const dataUrl = await toPng(idCardRef.current, { cacheBust: true });
-      await updateUserProfile({ idCardUrl: dataUrl });
-      Alert.alert("Success", "ID Card generated successfully!");
-      setIsIdCardModalOpen(true);
-    } catch (err) {
-      console.error('Oops, something went wrong!', err);
-      Alert.alert("Error", "Failed to generate ID card.");
-    } finally {
-      setIsGenerating(false);
-    }
-  }, [idCardRef, user, updateUserProfile]);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#111827' }}>
@@ -112,46 +87,6 @@ const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={handleGenerateIdCard}
-            disabled={isGenerating || !user?.profilePhotoUrl}
-            style={{
-              width: '100%',
-              backgroundColor: isGenerating || !user?.profilePhotoUrl ? '#6B7280' : '#2563EB',
-              padding: 12,
-              borderRadius: 6,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              opacity: isGenerating || !user?.profilePhotoUrl ? 0.6 : 1
-            }}
-          >
-            {isGenerating ? <Spinner size="small" /> : <IdCardIcon />}
-            <Text style={{ color: 'white', fontWeight: '600', fontSize: 16 }}>
-              {isGenerating ? "Generating..." : "Generate Legacy ID Card"}
-            </Text>
-          </TouchableOpacity>
-
-          {user?.idCardUrl && (
-            <TouchableOpacity
-              onPress={() => setIsIdCardModalOpen(true)}
-              style={{
-                width: '100%',
-                backgroundColor: '#6B7280',
-                padding: 12,
-                borderRadius: 6,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8
-              }}
-            >
-              <IdCardIcon />
-              <Text style={{ color: 'white', fontWeight: '600', fontSize: 16 }}>View Legacy ID Card</Text>
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
             onPress={logout}
             style={{
               width: '100%',
@@ -169,21 +104,8 @@ const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* This element is used for generating the ID card image and is not displayed directly */}
-        <View style={{ position: 'absolute', left: -9999 }}>
-          {user && <IdCard ref={idCardRef} user={user} />}
-        </View>
-
         <Modal isVisible={isPhotoModalOpen} onClose={() => setIsPhotoModalOpen(false)} title="Take Profile Photo">
           <ProfilePhotoCapture onSave={handlePhotoSave} onCancel={() => setIsPhotoModalOpen(false)} />
-        </Modal>
-
-        <Modal isVisible={isIdCardModalOpen} onClose={() => setIsIdCardModalOpen(false)} title="Your Digital ID Card">
-          {user?.idCardUrl ? (
-            <Image source={{ uri: user.idCardUrl }} style={{ width: '100%', height: 'auto', borderRadius: 8 }} />
-          ) : (
-            <Text style={{ color: '#9CA3AF', textAlign: 'center' }}>No ID card generated yet. Please generate one from your profile.</Text>
-          )}
         </Modal>
       </ScrollView>
     </View>

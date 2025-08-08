@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, Dimensions } from 'react-native';
 // import { LinearGradient } from 'expo-linear-gradient';
+import stampImage from '../logos/stampsign.png';
+import companyLogoImage from '../logos/logo 1024.png';
 
 interface UserProfile {
   fullName: string;
@@ -18,36 +20,25 @@ interface DigitalIdCardProps {
   companyLogo?: string;
   companyName?: string;
   companyAddress?: string;
-  authorizedSignature?: string;
-  officialStamp?: string;
 }
 
 const { width: screenWidth } = Dimensions.get('window');
 const cardWidth = screenWidth * 0.9;
-const cardHeight = cardWidth * 0.63; // Standard ID card ratio (3.375" x 2.125")
 
 const DigitalIdCard: React.FC<DigitalIdCardProps> = ({
   userProfile,
   companyLogo,
   companyName = "All Check Services LLP",
   companyAddress = "Office No. 406, 4th Floor, Neptune Flying Colors, Din Dayal Upadhyay Rd, Mumbai, Maharashtra 400080",
-  authorizedSignature,
-  officialStamp,
 }) => {
   return (
     <View style={styles.cardContainer}>
       {/* Front Side of ID Card */}
-      <View style={[styles.card, { width: cardWidth, height: cardHeight }]}>
+      <View style={[styles.card, { width: cardWidth }]}>
         {/* Header Section with Company Branding */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            {companyLogo ? (
-              <Image source={companyLogo} style={styles.companyLogo} />
-            ) : (
-              <View style={[styles.companyLogo, { backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }]}>
-                <Text style={{ color: '#10B981', fontWeight: 'bold', fontSize: 12 }}>LOGO</Text>
-              </View>
-            )}
+            <Image source={companyLogoImage} style={styles.companyLogo} />
             <View style={styles.headerText}>
               <Text style={styles.companyNameText}>{companyName}</Text>
               <Text style={styles.idCardTitle}>EMPLOYEE ID CARD</Text>
@@ -78,69 +69,60 @@ const DigitalIdCard: React.FC<DigitalIdCardProps> = ({
 
           {/* User Details Section */}
           <View style={styles.detailsSection}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Employee ID:</Text>
-              <Text style={styles.detailValue}>{userProfile.employeeId}</Text>
-            </View>
-            
-            {userProfile.designation && (
+            <View style={styles.detailsContainer}>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Designation:</Text>
-                <Text style={styles.detailValue}>{userProfile.designation}</Text>
+                <Text style={styles.detailLabel}>Employee ID:</Text>
+                <Text style={styles.detailValue}>{userProfile.employeeId}</Text>
               </View>
-            )}
-            
-            {userProfile.department && (
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Department:</Text>
-                <Text style={styles.detailValue}>{userProfile.department}</Text>
-              </View>
-            )}
-            
-            {userProfile.validUntil && (
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Valid Until:</Text>
-                <Text style={styles.detailValue}>{userProfile.validUntil}</Text>
-              </View>
-            )}
-          </View>
-        </View>
 
-        {/* Footer Section with Authorization */}
-        <View style={styles.footer}>
-          <View style={styles.authorizationSection}>
-            <Text style={styles.authorizationText}>
-              This is to certify that {userProfile.fullName.toUpperCase()} is an employee of {companyName}.
-            </Text>
-            <Text style={styles.authorizationText}>
-              {userProfile.fullName.toUpperCase()} is authorized to perform verification activities.
-            </Text>
-          </View>
-          
-          <View style={styles.signatureSection}>
-            <View style={styles.signatureContainer}>
-              {authorizedSignature ? (
-                <Image source={authorizedSignature} style={styles.signature} />
-              ) : (
-                <View style={[styles.signature, { backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center' }]}>
-                  <Text style={{ fontSize: 8, color: '#6B7280' }}>Signature</Text>
+              {userProfile.designation && (
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Designation:</Text>
+                  <Text style={styles.detailValue}>{userProfile.designation}</Text>
                 </View>
               )}
-              <Text style={styles.signatureLabel}>Authorized Signature</Text>
+
+              {userProfile.department && (
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Department:</Text>
+                  <Text style={styles.detailValue}>{userProfile.department}</Text>
+                </View>
+              )}
+
+              {userProfile.phoneNumber && (
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Phone:</Text>
+                  <Text style={styles.detailValue}>{userProfile.phoneNumber}</Text>
+                </View>
+              )}
+
+              {userProfile.email && (
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Email:</Text>
+                  <Text style={styles.detailValue}>{userProfile.email}</Text>
+                </View>
+              )}
+
+              {userProfile.validUntil && (
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Valid Until:</Text>
+                  <Text style={styles.detailValue}>{userProfile.validUntil}</Text>
+                </View>
+              )}
             </View>
-            <View style={styles.stampContainer}>
-              {officialStamp ? (
-                <Image source={officialStamp} style={styles.stamp} />
-              ) : (
-                <View style={[styles.stamp, { backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center', borderRadius: 20 }]}>
-                  <Text style={{ fontSize: 6, color: '#6B7280' }}>STAMP</Text>
-                </View>
-              )}
+
+            {/* Company Stamp Section */}
+            <View style={styles.stampSection}>
+              <Image
+                source={stampImage}
+                style={styles.companyStamp}
+                resizeMode="contain"
+              />
             </View>
           </View>
         </View>
 
-        {/* Company Address */}
+        {/* Company Address Footer */}
         <View style={styles.addressSection}>
           <Text style={styles.addressText}>{companyAddress}</Text>
         </View>
@@ -169,7 +151,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   header: {
-    height: cardHeight * 0.25,
+    height: 70,
     paddingHorizontal: 15,
     paddingVertical: 10,
     backgroundColor: '#10B981',
@@ -184,6 +166,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     marginRight: 10,
+    backgroundColor: '#FFFFFF',
   },
   headerText: {
     flex: 1,
@@ -201,13 +184,15 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   mainContent: {
-    flex: 1,
     flexDirection: 'row',
     padding: 15,
+    paddingBottom: 15,
+    minHeight: 120,
   },
   photoSection: {
     width: '35%',
     alignItems: 'center',
+    justifyContent: 'flex-start',
   },
   photoContainer: {
     marginBottom: 8,
@@ -240,11 +225,18 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     textAlign: 'center',
     lineHeight: 14,
+    marginTop: 5,
+    maxWidth: 100,
   },
   detailsSection: {
     flex: 1,
     paddingLeft: 15,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  detailsContainer: {
+    flex: 1,
   },
   detailRow: {
     marginBottom: 6,
@@ -260,56 +252,31 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     fontWeight: '500',
   },
-  footer: {
-    paddingHorizontal: 15,
-    paddingBottom: 10,
-  },
-  authorizationSection: {
-    marginBottom: 10,
-  },
-  authorizationText: {
-    fontSize: 8,
-    color: '#374151',
-    lineHeight: 10,
-    marginBottom: 2,
-  },
-  signatureSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  signatureContainer: {
-    alignItems: 'center',
-  },
-  signature: {
-    width: 60,
-    height: 20,
-    resizeMode: 'contain',
-  },
-  signatureLabel: {
-    fontSize: 7,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  stampContainer: {
-    alignItems: 'center',
-  },
-  stamp: {
-    width: 40,
-    height: 40,
-    resizeMode: 'contain',
-    opacity: 0.8,
-  },
   addressSection: {
     backgroundColor: '#F9FAFB',
     paddingHorizontal: 15,
     paddingVertical: 8,
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  stampSection: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: 10,
+  },
+  companyStamp: {
+    width: 60,
+    height: 60,
+    opacity: 0.8,
   },
   addressText: {
-    fontSize: 7,
+    fontSize: 8,
     color: '#6B7280',
     textAlign: 'center',
-    lineHeight: 9,
+    lineHeight: 10,
+    fontWeight: '400',
   },
 });
 

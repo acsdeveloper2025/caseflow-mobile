@@ -1787,7 +1787,6 @@ export interface User {
   username: string;
   profilePhotoUrl?: string;
   profilePhoto?: string;
-  idCardUrl?: string;
   employeeId?: string;
   designation?: string;
   department?: string;

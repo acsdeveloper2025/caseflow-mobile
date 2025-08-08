@@ -22,7 +22,7 @@ const DigitalIdCardScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const cardRef = useRef<View>(null);
 
-  // Mock user profile data - replace with actual user data from context/API
+  // User profile data from authenticated user context
   const userProfile = {
     fullName: user?.name || 'John Doe',
     employeeId: user?.employeeId || 'EMP001',
@@ -31,7 +31,7 @@ const DigitalIdCardScreen: React.FC = () => {
     validUntil: '31/12/2024',
     phoneNumber: user?.phone || '+91 9876543210',
     email: user?.email || 'john.doe@allcheckservices.com',
-    profilePhoto: user?.profilePhoto,
+    profilePhoto: user?.profilePhotoUrl,
   };
 
   const handleSaveToGallery = async () => {
@@ -130,11 +130,11 @@ const DigitalIdCardScreen: React.FC = () => {
           <View style={styles.infoCard}>
             <Text style={{ fontSize: 24, color: '#059669' }}>🛡️</Text>
             <View style={styles.infoContent}>
-              <Text style={styles.infoTitle}>Security Features</Text>
+              <Text style={styles.infoTitle}>Card Features</Text>
               <Text style={styles.infoText}>
                 • Official company logo and branding{'\n'}
-                • Authorized signature and stamp{'\n'}
                 • Employee verification details{'\n'}
+                • Contact information for communication{'\n'}
                 • Valid until date for authenticity
               </Text>
             </View>

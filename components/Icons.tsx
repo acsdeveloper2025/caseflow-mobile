@@ -149,11 +149,7 @@ export const UserIcon: React.FC<IconProps> = ({ width, height, color = "currentC
   </svg>
 );
 
-export const IdCardIcon: React.FC<IconProps> = ({ width, height, color = "currentColor" }) => (
-  <svg width={width || 20} height={height || 20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="M6 10h2"></path><path d="M14 10h4"></path><path d="M6 14h12"></path>
-  </svg>
-);
+
 
 export const ClipboardIcon: React.FC<IconProps> = ({ width, height, color = "currentColor" }) => (
     <svg width={width || 20} height={height || 20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
