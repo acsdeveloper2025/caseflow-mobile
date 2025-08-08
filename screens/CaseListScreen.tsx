@@ -98,6 +98,20 @@ const CaseListScreen: React.FC<CaseListScreenProps> = ({
     </View>
   );
 
+  // Create a stable header component to prevent TabSearch from being recreated
+  const ListHeader = React.useMemo(() => (
+    <>
+      {renderHeader()}
+      <TabSearch
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        placeholder={searchPlaceholder}
+        resultCount={resultCount}
+        totalCount={totalCount}
+      />
+    </>
+  ), [searchQuery, searchPlaceholder, resultCount, totalCount]);
+
   if (loading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: '#111827' }}>
@@ -122,18 +136,7 @@ const CaseListScreen: React.FC<CaseListScreenProps> = ({
           />
         )}
         keyExtractor={(item: Case) => item.id}
-        ListHeaderComponent={() => (
-          <>
-            {renderHeader()}
-            <TabSearch
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              placeholder={searchPlaceholder}
-              resultCount={resultCount}
-              totalCount={totalCount}
-            />
-          </>
-        )}
+        ListHeaderComponent={ListHeader}
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={{ paddingBottom: 100, paddingTop: 20 }}
       />

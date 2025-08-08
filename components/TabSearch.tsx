@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
+import { View, TextInput, TouchableOpacity, Text } from 'react-native';
 import { SearchIcon, XIcon } from './Icons';
 
 interface TabSearchProps {
@@ -16,80 +17,140 @@ const TabSearch: React.FC<TabSearchProps> = ({
   resultCount,
   totalCount
 }) => {
-  const handleClear = () => {
+  const searchInputRef = useRef<TextInput>(null);
+
+  const handleClear = useCallback(() => {
     onSearchChange('');
-  };
+    // Keep focus on the input after clearing
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [onSearchChange]);
 
   return (
-    <div className="mb-4 px-4">
-      <div className="relative">
+    <View style={{ marginBottom: 16, paddingHorizontal: 16 }}>
+      <View style={{ position: 'relative' }}>
         {/* Search Input */}
-        <div className="relative flex items-center">
-          <SearchIcon 
-            className="absolute left-3 text-gray-400" 
-            width={20} 
-            height={20} 
-          />
-          <input
-            type="text"
+        <View style={{
+          position: 'relative',
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: 'rgba(31, 41, 55, 0.5)',
+          borderWidth: 1,
+          borderColor: '#4B5563',
+          borderRadius: 8,
+          paddingLeft: 40,
+          paddingRight: searchQuery ? 40 : 16,
+          paddingVertical: 12
+        }}>
+          <View style={{
+            position: 'absolute',
+            left: 12,
+            zIndex: 1
+          }}>
+            <SearchIcon
+              color="#9CA3AF"
+              width={20}
+              height={20}
+            />
+          </View>
+          <TextInput
+            key="search-input" // Stable key to prevent re-mounting
+            ref={searchInputRef}
             value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChangeText={onSearchChange}
             placeholder={placeholder}
-            className="w-full pl-10 pr-10 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all duration-200"
+            placeholderTextColor="#9CA3AF"
+            style={{
+              flex: 1,
+              color: '#ffffff',
+              fontSize: 16,
+              paddingVertical: 0, // Remove default padding to prevent layout issues
+              minHeight: 20
+            }}
+            autoCorrect={false}
+            autoCapitalize="none"
+            returnKeyType="search"
+            blurOnSubmit={false} // Prevent keyboard from closing on submit
+            selectTextOnFocus={false} // Prevent text selection that might cause focus issues
+            clearButtonMode="never" // Disable native clear button to use our custom one
           />
           {searchQuery && (
-            <button
-              onClick={handleClear}
-              className="absolute right-3 p-1 text-gray-400 hover:text-white transition-colors"
-              aria-label="Clear search"
+            <TouchableOpacity
+              onPress={handleClear}
+              style={{
+                position: 'absolute',
+                right: 12,
+                padding: 4,
+                zIndex: 1
+              }}
             >
-              <XIcon width={16} height={16} />
-            </button>
+              <XIcon color="#9CA3AF" width={16} height={16} />
+            </TouchableOpacity>
           )}
-        </div>
+        </View>
 
         {/* Search Results Info */}
         {searchQuery && (
-          <div className="mt-2 flex items-center justify-between text-sm">
-            <div className="text-gray-400">
+          <View style={{
+            marginTop: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <View>
               {resultCount !== undefined && totalCount !== undefined ? (
                 <>
                   {resultCount === 0 ? (
-                    <span className="text-red-400">No results found</span>
+                    <Text style={{ color: '#ef4444', fontSize: 14 }}>No results found</Text>
                   ) : (
-                    <span>
+                    <Text style={{ color: '#9CA3AF', fontSize: 14 }}>
                       Showing {resultCount} of {totalCount} cases
-                    </span>
+                    </Text>
                   )}
                 </>
               ) : null}
-            </div>
-            
+            </View>
+
             {searchQuery && (
-              <div className="text-xs text-gray-500">
+              <Text style={{ color: '#6B7280', fontSize: 12 }}>
                 Search active: "{searchQuery}"
-              </div>
+              </Text>
             )}
-          </div>
+          </View>
         )}
-      </div>
+      </View>
 
       {/* Search Tips */}
       {searchQuery && resultCount === 0 && (
-        <div className="mt-3 p-3 bg-gray-800/30 border border-gray-600 rounded-lg">
-          <h4 className="text-sm font-medium text-gray-300 mb-2">Search Tips:</h4>
-          <ul className="text-xs text-gray-400 space-y-1">
-            <li>• Try searching by case ID (e.g., "CASE-001")</li>
-            <li>• Search by customer name (e.g., "Priya Sharma")</li>
-            <li>• Search by address or location (e.g., "Mumbai", "Marine Drive")</li>
-            <li>• Search by bank name (e.g., "HDFC", "ICICI")</li>
-            <li>• Search by verification type (e.g., "Residence", "Office")</li>
-            <li>• Search is case-insensitive</li>
-          </ul>
-        </div>
+        <View style={{
+          marginTop: 12,
+          padding: 12,
+          backgroundColor: 'rgba(31, 41, 55, 0.3)',
+          borderWidth: 1,
+          borderColor: '#4B5563',
+          borderRadius: 8
+        }}>
+          <Text style={{
+            fontSize: 14,
+            fontWeight: '500',
+            color: '#D1D5DB',
+            marginBottom: 8
+          }}>
+            Search Tips:
+          </Text>
+          <View style={{ gap: 4 }}>
+            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>• Try searching by case ID (e.g., "CASE-001")</Text>
+            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>• Search by customer name (e.g., "Priya Sharma")</Text>
+            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>• Search by address or location (e.g., "Mumbai", "Marine Drive")</Text>
+            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>• Search by bank name (e.g., "HDFC", "ICICI")</Text>
+            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>• Search by verification type (e.g., "Residence", "Office")</Text>
+            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>• Search is case-insensitive</Text>
+          </View>
+        </View>
       )}
-    </div>
+    </View>
   );
 };
 
-export default TabSearch;
+export default React.memo(TabSearch);
