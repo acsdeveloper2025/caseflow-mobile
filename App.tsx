@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CaseProvider } from './context/CaseContext';
-import LoginScreen from './screens/LoginScreen';
+import NewLoginScreen from './screens/NewLoginScreen';
 import DashboardScreen from './screens/DashboardScreen';
 import CaseListScreen from './screens/CaseListScreen';
 import AssignedCasesScreen from './screens/AssignedCasesScreen';
@@ -12,9 +12,9 @@ import SavedCasesScreen from './screens/SavedCasesScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import DigitalIdCardScreen from './screens/DigitalIdCardScreen';
 import BottomNavigation from './components/BottomNavigation';
-import SearchDemo from './components/SearchDemo';
 import { SafeAreaProvider, MobileContainer } from './components/SafeAreaProvider';
 import { ResponsiveLayoutProvider } from './components/ResponsiveLayout';
+import ErrorBoundary from './components/ErrorBoundary';
 import { View } from 'react-native';
 
 const AppNavigator: React.FC = () => {
@@ -53,31 +53,52 @@ const AppNavigator: React.FC = () => {
           </>
         ) : (
           <>
-            <Route path="/login" element={<LoginScreen />} />
+            <Route path="/login" element={<NewLoginScreen />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </>
         )}
       </Routes>
       {isAuthenticated && <BottomNavigation />}
-      {isAuthenticated && <SearchDemo />}
     </MobileContainer>
   );
 };
 
+
+
 const App: React.FC = () => {
-  return (
-    <BrowserRouter>
-      <SafeAreaProvider>
-        <ResponsiveLayoutProvider>
-          <AuthProvider>
-            <CaseProvider>
-              <AppNavigator />
-            </CaseProvider>
-          </AuthProvider>
-        </ResponsiveLayoutProvider>
-      </SafeAreaProvider>
-    </BrowserRouter>
-  );
+
+  try {
+    return (
+      <ErrorBoundary>
+        <BrowserRouter>
+          <SafeAreaProvider>
+            <ResponsiveLayoutProvider>
+              <AuthProvider>
+                <CaseProvider>
+                  <AppNavigator />
+                </CaseProvider>
+              </AuthProvider>
+            </ResponsiveLayoutProvider>
+          </SafeAreaProvider>
+        </BrowserRouter>
+      </ErrorBoundary>
+    );
+  } catch (error) {
+    console.error('App render error:', error);
+    return (
+      <div style={{
+        backgroundColor: '#111827',
+        color: '#ffffff',
+        padding: '20px',
+        minHeight: '100vh',
+        fontFamily: 'Arial, sans-serif'
+      }}>
+        <h1>App Error</h1>
+        <p>Failed to render app: {String(error)}</p>
+        <button onClick={() => window.location.reload()}>Reload</button>
+      </div>
+    );
+  }
 };
 
 export default App;

@@ -6,7 +6,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
   isLoading: boolean;
-  login: (username: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateUserProfile: (updates: Partial<Pick<User, 'profilePhotoUrl' | 'idCardUrl'>>) => Promise<void>;
 }
@@ -35,27 +35,89 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIsLoading(false);
       }
     };
-    checkAuthStatus();
+
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.warn('Auth check timeout, setting loading to false');
+      setIsLoading(false);
+    }, 5000);
+
+    checkAuthStatus().finally(() => {
+      clearTimeout(timeoutId);
+    });
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
-  const login = async (username: string) => {
+  const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
-    await new Promise(res => setTimeout(res, 1000));
-    
-    const storedUser = await AsyncStorage.getItem('user');
-    let mockUser: User;
 
-    if (storedUser && JSON.parse(storedUser).username === username) {
+    try {
+      // Simulate network delay
+      await new Promise(res => setTimeout(res, 1000));
+
+      // Comprehensive validation for required fields
+      if (!username.trim()) {
+        setIsLoading(false);
+        return { success: false, error: 'Username is required' };
+      }
+
+      if (!password.trim()) {
+        setIsLoading(false);
+        return { success: false, error: 'Password is required' };
+      }
+
+      // Additional validation rules
+      if (username.length < 3) {
+        setIsLoading(false);
+        return { success: false, error: 'Username must be at least 3 characters long' };
+      }
+
+      if (password.length < 4) {
+        setIsLoading(false);
+        return { success: false, error: 'Password must be at least 4 characters long' };
+      }
+
+      // Demo authentication logic - In production, this would make an API call
+      // For demo purposes, accept specific test credentials or any valid format
+      const isValidDemo = (
+        (username.toLowerCase() === 'demo' && password === 'demo123') ||
+        (username.toLowerCase() === 'admin' && password === 'admin123') ||
+        (username.length >= 3 && password.length >= 4)
+      );
+
+      if (!isValidDemo) {
+        setIsLoading(false);
+        return { success: false, error: 'Invalid credentials. Please check your username and password.' };
+      }
+
+      // Create or retrieve user data
+      const storedUser = await AsyncStorage.getItem('user');
+      let mockUser: User;
+
+      if (storedUser && JSON.parse(storedUser).username === username) {
         mockUser = JSON.parse(storedUser);
-    } else {
-        mockUser = { id: 'user-1', name: 'Field Agent', username };
+      } else {
+        mockUser = {
+          id: `user-${Date.now()}`,
+          name: username === 'demo' ? 'Demo User' : username === 'admin' ? 'Administrator' : 'Field Agent',
+          username
+        };
+      }
+
+      // Store authentication data
+      await AsyncStorage.setItem('auth_token', 'mock_jwt_token');
+      await AsyncStorage.setItem('user', JSON.stringify(mockUser));
+      setUser(mockUser);
+      setIsAuthenticated(true);
+      setIsLoading(false);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Login error:', error);
+      setIsLoading(false);
+      return { success: false, error: 'An unexpected error occurred. Please try again.' };
     }
-    
-    await AsyncStorage.setItem('auth_token', 'mock_jwt_token');
-    await AsyncStorage.setItem('user', JSON.stringify(mockUser));
-    setUser(mockUser);
-    setIsAuthenticated(true);
-    setIsLoading(false);
   };
 
   const logout = async () => {
