@@ -118,14 +118,15 @@ export const SafeAreaProvider: React.FC<SafeAreaProviderProps> = ({ children }) 
         if (isNative) {
           try {
             // Configure status bar for native platforms
-            await StatusBar.setStyle({ style: 'dark' });
+            await StatusBar.setStyle({ style: 'light' });
             await StatusBar.setBackgroundColor({ color: '#111827' });
             await StatusBar.setOverlaysWebView({ overlay: false });
 
             // Get status bar info and calculate safe areas
             if (Capacitor.getPlatform() === 'android') {
               const info = await StatusBar.getInfo();
-              const topInset = info.height || 0;
+              // Use actual status bar height without additional padding
+              const topInset = info.height || 24; // Default to 24px if not available
 
               // Calculate bottom inset based on navigation type
               let bottomInset = 0;
@@ -149,11 +150,14 @@ export const SafeAreaProvider: React.FC<SafeAreaProviderProps> = ({ children }) 
                 }));
               }
             } else if (Capacitor.getPlatform() === 'ios') {
-              // For iOS, safe areas are handled by the system
-              // Home indicator devices typically have 34px bottom safe area
+              // For iOS, get status bar info and use system safe areas
+              const info = await StatusBar.getInfo();
+              const topInset = info.height || 0;
               const bottomInset = detectedDeviceInfo.hasHomeIndicator ? 34 : 0;
+
               setInsets(prev => ({
                 ...prev,
+                top: topInset,
                 bottom: bottomInset
               }));
             }
@@ -277,8 +281,8 @@ export const SafeAreaView: React.FC<SafeAreaViewProps> = ({
     ...style,
     ...(edges.includes('top') && {
       paddingTop: isNative
-        ? Math.max(2, enhancedInsets.top)
-        : `max(2px, env(safe-area-inset-top))`
+        ? enhancedInsets.top
+        : `env(safe-area-inset-top)`
     }),
     ...(edges.includes('bottom') && {
       paddingBottom: isNative
@@ -311,23 +315,28 @@ interface MobileContainerProps {
   style?: React.CSSProperties;
 }
 
-export const MobileContainer: React.FC<MobileContainerProps> = ({ 
-  children, 
-  className = '', 
-  style = {} 
+export const MobileContainer: React.FC<MobileContainerProps> = ({
+  children,
+  className = '',
+  style = {}
 }) => {
+  const { insets, isNative } = useSafeArea();
+
   return (
-    <SafeAreaView 
-      edges={['top', 'left', 'right']} 
+    <View
       className={`mobile-container ${className}`}
       style={{
         minHeight: '100vh',
         backgroundColor: '#111827',
         position: 'relative',
+        // Apply only the actual safe area insets without extra padding
+        paddingTop: isNative ? insets.top : `env(safe-area-inset-top)`,
+        paddingLeft: isNative ? insets.left : `env(safe-area-inset-left)`,
+        paddingRight: isNative ? insets.right : `env(safe-area-inset-right)`,
         ...style
       }}
     >
       {children}
-    </SafeAreaView>
+    </View>
   );
 };
