@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { StatusBar } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 
@@ -12,11 +13,13 @@ interface SafeAreaInsets {
 interface SafeAreaContextType {
   insets: SafeAreaInsets;
   isNative: boolean;
+  isInitialized: boolean;
 }
 
 const SafeAreaContext = createContext<SafeAreaContextType>({
   insets: { top: 0, bottom: 0, left: 0, right: 0 },
   isNative: false,
+  isInitialized: false
 });
 
 export const useSafeArea = () => useContext(SafeAreaContext);
@@ -28,21 +31,23 @@ interface SafeAreaProviderProps {
 export const SafeAreaProvider: React.FC<SafeAreaProviderProps> = ({ children }) => {
   const [insets, setInsets] = useState<SafeAreaInsets>({ top: 0, bottom: 0, left: 0, right: 0 });
   const [isNative] = useState(Capacitor.isNativePlatform());
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const initializeSafeArea = async () => {
-      if (isNative) {
-        try {
-          // Configure status bar for native platforms
-          await StatusBar.setStyle({ style: 'dark' });
-          await StatusBar.setBackgroundColor({ color: '#111827' });
-          await StatusBar.setOverlaysWebView({ overlay: false });
-          
-          // Get status bar info for Android
-          if (Capacitor.getPlatform() === 'android') {
-            const info = await StatusBar.getInfo();
-            setInsets(prev => ({ ...prev, top: info.height || 0 }));
-          }
+      try {
+        if (isNative) {
+          try {
+            // Configure status bar for native platforms
+            await StatusBar.setStyle({ style: 'dark' });
+            await StatusBar.setBackgroundColor({ color: '#111827' });
+            await StatusBar.setOverlaysWebView({ overlay: false });
+
+            // Get status bar info for Android
+            if (Capacitor.getPlatform() === 'android') {
+              const info = await StatusBar.getInfo();
+              setInsets(prev => ({ ...prev, top: info.height || 0 }));
+            }
         } catch (error) {
           console.warn('Failed to configure status bar:', error);
         }
@@ -67,13 +72,28 @@ export const SafeAreaProvider: React.FC<SafeAreaProviderProps> = ({ children }) 
           window.removeEventListener('orientationchange', updateInsets);
         };
       }
+      } catch (error) {
+        console.error('SafeAreaProvider initialization error:', error);
+      } finally {
+        setIsInitialized(true);
+      }
     };
 
-    initializeSafeArea();
+    // Add timeout to prevent hanging
+    const timeoutId = setTimeout(() => {
+      console.warn('SafeAreaProvider initialization timeout');
+      setIsInitialized(true);
+    }, 3000);
+
+    initializeSafeArea().finally(() => {
+      clearTimeout(timeoutId);
+    });
+
+    return () => clearTimeout(timeoutId);
   }, [isNative]);
 
   return (
-    <SafeAreaContext.Provider value={{ insets, isNative }}>
+    <SafeAreaContext.Provider value={{ insets, isNative, isInitialized }}>
       {children}
     </SafeAreaContext.Provider>
   );
@@ -114,16 +134,16 @@ export const SafeAreaView: React.FC<SafeAreaViewProps> = ({
     };
 
     return (
-      <div style={nativeStyle} className={className}>
+      <View style={nativeStyle} className={className}>
         {children}
-      </div>
+      </View>
     );
   }
 
   return (
-    <div style={safeAreaStyle} className={className}>
+    <View style={safeAreaStyle} className={className}>
       {children}
-    </div>
+    </View>
   );
 };
 
