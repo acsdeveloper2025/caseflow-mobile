@@ -8,7 +8,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  updateUserProfile: (updates: Partial<Pick<User, 'profilePhotoUrl' | 'idCardUrl'>>) => Promise<void>;
+  updateUserProfile: (updates: Partial<Pick<User, 'profilePhotoUrl'>>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -126,7 +126,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsAuthenticated(false);
   };
 
-  const updateUserProfile = async (updates: Partial<Pick<User, 'profilePhotoUrl' | 'idCardUrl'>>) => {
+  const updateUserProfile = async (updates: Partial<Pick<User, 'profilePhotoUrl'>>) => {
     if (user) {
         const updatedUser = { ...user, ...updates };
         setUser(updatedUser);
