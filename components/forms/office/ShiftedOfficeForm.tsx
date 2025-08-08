@@ -141,7 +141,20 @@ const ShiftedOfficeForm: React.FC<ShiftedOfficeFormProps> = ({ caseData }) => {
   }), []);
 
   return (
-    <div className="space-y-4 pt-4 border-t border-dark-border">
+    <AutoSaveFormWrapper
+      caseId={caseData.id}
+      formType={FORM_TYPES.OFFICE_SHIFTED}
+      formData={report}
+      images={report?.images || []}
+      onFormDataChange={handleFormDataChange}
+      onImagesChange={handleAutoSaveImagesChange}
+      onDataRestored={handleDataRestored}
+      autoSaveOptions={{
+        enableAutoSave: !isReadOnly,
+        showIndicator: !isReadOnly,
+      }}
+    >
+      <div className="space-y-4 pt-4 border-t border-dark-border">
       <h3 className="text-lg font-semibold text-brand-primary">Shifted Office Report</h3>
 
       {/* Customer Information Section */}
@@ -335,7 +348,8 @@ const ShiftedOfficeForm: React.FC<ShiftedOfficeFormProps> = ({ caseData }) => {
             </ConfirmationModal>
           </>
       )}
-    </div>
+      </div>
+    </AutoSaveFormWrapper>
   );
 };
 
