@@ -155,7 +155,6 @@ const ShiftedBusinessForm: React.FC<ShiftedBusinessFormProps> = ({ caseData }) =
       autoSaveOptions={{
         enableAutoSave: !isReadOnly,
         showIndicator: !isReadOnly,
-        showRecoveryModal: !isReadOnly,
       }}
     >
       <div className="space-y-4 pt-4 border-t border-dark-border">

@@ -110,7 +110,20 @@ const EntryRestrictedNocForm: React.FC<EntryRestrictedNocFormProps> = ({ caseDat
   }), []);
 
   return (
-    <div className="space-y-4 pt-4 border-t border-dark-border">
+    <AutoSaveFormWrapper
+      caseId={caseData.id}
+      formType={FORM_TYPES.NOC_ENTRY_RESTRICTED}
+      formData={report}
+      images={report?.images || []}
+      onFormDataChange={handleFormDataChange}
+      onImagesChange={handleAutoSaveImagesChange}
+      onDataRestored={handleDataRestored}
+      autoSaveOptions={{
+        enableAutoSave: !isReadOnly,
+        showIndicator: !isReadOnly,
+      }}
+    >
+      <div className="space-y-4 pt-4 border-t border-dark-border">
       <h3 className="text-lg font-semibold text-brand-primary">Entry Restricted NOC Report</h3>
 
       {/* Customer Information Section */}
@@ -285,7 +298,8 @@ const EntryRestrictedNocForm: React.FC<EntryRestrictedNocFormProps> = ({ caseDat
             </ConfirmationModal>
           </>
       )}
-    </div>
+      </div>
+    </AutoSaveFormWrapper>
   );
 };
 

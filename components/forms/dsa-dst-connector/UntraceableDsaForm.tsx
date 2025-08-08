@@ -102,7 +102,20 @@ const UntraceableDsaForm: React.FC<UntraceableDsaFormProps> = ({ caseData }) => 
   }), []);
 
   return (
-    <div className="space-y-4 pt-4 border-t border-dark-border">
+    <AutoSaveFormWrapper
+      caseId={caseData.id}
+      formType={FORM_TYPES.DSA_UNTRACEABLE}
+      formData={report}
+      images={report?.images || []}
+      onFormDataChange={handleFormDataChange}
+      onImagesChange={handleAutoSaveImagesChange}
+      onDataRestored={handleDataRestored}
+      autoSaveOptions={{
+        enableAutoSave: !isReadOnly,
+        showIndicator: !isReadOnly,
+      }}
+    >
+      <div className="space-y-4 pt-4 border-t border-dark-border">
       <h3 className="text-lg font-semibold text-brand-primary">Untraceable DSA Report</h3>
 
       {/* Customer Information Section */}
@@ -242,7 +255,8 @@ const UntraceableDsaForm: React.FC<UntraceableDsaFormProps> = ({ caseData }) => 
             </ConfirmationModal>
           </>
       )}
-    </div>
+      </div>
+    </AutoSaveFormWrapper>
   );
 };
 

@@ -102,7 +102,20 @@ const UntraceablePropertyIndividualForm: React.FC<UntraceablePropertyIndividualF
   }), []);
 
   return (
-    <div className="space-y-4 pt-4 border-t border-dark-border">
+    <AutoSaveFormWrapper
+      caseId={caseData.id}
+      formType={FORM_TYPES.PROPERTY_INDIVIDUAL_UNTRACEABLE}
+      formData={report}
+      images={report?.images || []}
+      onFormDataChange={handleFormDataChange}
+      onImagesChange={handleAutoSaveImagesChange}
+      onDataRestored={handleDataRestored}
+      autoSaveOptions={{
+        enableAutoSave: !isReadOnly,
+        showIndicator: !isReadOnly,
+      }}
+    >
+      <div className="space-y-4 pt-4 border-t border-dark-border">
       <div className="p-4 bg-gray-900/50 rounded-lg space-y-4 border border-dark-border mb-4">
         <h5 className="font-semibold text-brand-primary">Case Details</h5>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -185,7 +198,8 @@ const UntraceablePropertyIndividualForm: React.FC<UntraceablePropertyIndividualF
             </ConfirmationModal>
           </>
       )}
-    </div>
+      </div>
+    </AutoSaveFormWrapper>
   );
 };
 

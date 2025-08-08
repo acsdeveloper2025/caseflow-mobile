@@ -3,7 +3,7 @@ import { useAutoSave, AutoSaveStatus } from '../hooks/useAutoSave';
 import { AutoSaveData } from '../services/autoSaveService';
 import { CapturedImage } from '../types';
 import AutoSaveIndicator from './AutoSaveIndicator';
-import AutoSaveRecoveryModal from './AutoSaveRecoveryModal';
+// AutoSaveRecoveryModal removed - auto-restore is now automatic
 
 interface AutoSaveFormWrapperProps {
   caseId: string;
@@ -18,7 +18,6 @@ interface AutoSaveFormWrapperProps {
     debounceMs?: number;
     enableAutoSave?: boolean;
     showIndicator?: boolean;
-    showRecoveryModal?: boolean;
   };
   className?: string;
 }
@@ -38,12 +37,9 @@ const AutoSaveFormWrapper: React.FC<AutoSaveFormWrapperProps> = ({
   const {
     debounceMs = 2000,
     enableAutoSave = true,
-    showIndicator = true,
-    showRecoveryModal = true
+    showIndicator = true
   } = autoSaveOptions;
 
-  const [showRecovery, setShowRecovery] = useState(false);
-  const [recoveryData, setRecoveryData] = useState<AutoSaveData | null>(null);
   const [hasCheckedForRecovery, setHasCheckedForRecovery] = useState(false);
   const isInitialMount = useRef(true);
   const lastSaveDataRef = useRef<string>('');
@@ -71,18 +67,30 @@ const AutoSaveFormWrapper: React.FC<AutoSaveFormWrapperProps> = ({
   });
 
   /**
-   * Check for existing saved data on mount
+   * Check for existing saved data on mount and automatically restore it
    */
   useEffect(() => {
-    if (isInitialMount.current && !hasCheckedForRecovery && showRecoveryModal) {
+    if (isInitialMount.current && !hasCheckedForRecovery) {
       isInitialMount.current = false;
-      
-      const checkForRecovery = async () => {
+
+      const checkAndRestoreData = async () => {
         try {
           const savedData = await restoreFormData();
           if (savedData && !savedData.isComplete) {
-            setRecoveryData(savedData);
-            setShowRecovery(true);
+            // Automatically restore the data without showing modal
+            if (onFormDataChange && savedData.formData) {
+              onFormDataChange(savedData.formData);
+            }
+
+            if (onImagesChange && savedData.images) {
+              onImagesChange(savedData.images);
+            }
+
+            if (onDataRestored) {
+              onDataRestored(savedData);
+            }
+
+            console.log('Auto-restored draft data for case:', caseId);
           }
         } catch (error) {
           console.error('Error checking for recovery data:', error);
@@ -92,9 +100,9 @@ const AutoSaveFormWrapper: React.FC<AutoSaveFormWrapperProps> = ({
       };
 
       // Small delay to ensure component is fully mounted
-      setTimeout(checkForRecovery, 100);
+      setTimeout(checkAndRestoreData, 100);
     }
-  }, [restoreFormData, hasCheckedForRecovery, showRecoveryModal]);
+  }, [restoreFormData, hasCheckedForRecovery, onFormDataChange, onImagesChange, onDataRestored, caseId]);
 
   /**
    * Auto-save when form data or images change
@@ -124,47 +132,7 @@ const AutoSaveFormWrapper: React.FC<AutoSaveFormWrapperProps> = ({
     }
   }, [formData, images, saveFormData, hasCheckedForRecovery, enableAutoSave]);
 
-  /**
-   * Handle recovery modal actions
-   */
-  const handleRestoreData = useCallback(async (data: AutoSaveData) => {
-    try {
-      // Restore form data
-      if (onFormDataChange && data.formData) {
-        onFormDataChange(data.formData);
-      }
-
-      // Restore images
-      if (onImagesChange && data.images) {
-        onImagesChange(data.images);
-      }
-
-      // Call the onDataRestored callback
-      if (onDataRestored) {
-        onDataRestored(data);
-      }
-
-      setShowRecovery(false);
-      setRecoveryData(null);
-    } catch (error) {
-      console.error('Error restoring data:', error);
-    }
-  }, [onFormDataChange, onImagesChange, onDataRestored]);
-
-  const handleDiscardRecovery = useCallback(async () => {
-    try {
-      await clearAutoSaveData();
-      setShowRecovery(false);
-      setRecoveryData(null);
-    } catch (error) {
-      console.error('Error discarding recovery data:', error);
-    }
-  }, [clearAutoSaveData]);
-
-  const handleCancelRecovery = useCallback(() => {
-    setShowRecovery(false);
-    setRecoveryData(null);
-  }, []);
+  // Recovery modal handlers removed - auto-restore is now automatic
 
   /**
    * Mark form as completed (call this when form is successfully submitted)
@@ -204,16 +172,7 @@ const AutoSaveFormWrapper: React.FC<AutoSaveFormWrapperProps> = ({
         {children}
       </div>
 
-      {/* Recovery modal */}
-      {showRecoveryModal && (
-        <AutoSaveRecoveryModal
-          isVisible={showRecovery}
-          savedData={recoveryData}
-          onRestore={handleRestoreData}
-          onDiscard={handleDiscardRecovery}
-          onCancel={handleCancelRecovery}
-        />
-      )}
+      {/* Recovery modal removed - auto-restore is now automatic */}
     </div>
   );
 };
