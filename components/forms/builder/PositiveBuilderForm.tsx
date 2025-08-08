@@ -9,6 +9,8 @@ import { FormField, SelectField, TextAreaField, NumberDropdownField } from '../.
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
+import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
+import { FORM_TYPES } from '../../../constants/formTypes';
 
 interface PositiveBuilderFormProps {
   caseData: Case;
@@ -24,6 +26,25 @@ const PositiveBuilderForm: React.FC<PositiveBuilderFormProps> = ({ caseData }) =
   const report = caseData.positiveBuilderReport;
   const isReadOnly = caseData.status === CaseStatus.Completed || caseData.isSaved;
   const MIN_IMAGES = 5;
+
+  // Auto-save handlers
+  const handleFormDataChange = (formData: any) => {
+    if (!isReadOnly) {
+      updatePositiveBuilderReport(caseData.id, formData);
+    }
+  };
+
+  const handleAutoSaveImagesChange = (images: CapturedImage[]) => {
+    if (!isReadOnly && report) {
+      updatePositiveBuilderReport(caseData.id, { ...report, images });
+    }
+  };
+
+  const handleDataRestored = (data: any) => {
+    if (!isReadOnly && data.formData) {
+      updatePositiveBuilderReport(caseData.id, data.formData);
+    }
+  };
 
   if (!report) {
     return <p className="text-medium-text">No Positive Builder report data available.</p>;
@@ -123,7 +144,21 @@ const PositiveBuilderForm: React.FC<PositiveBuilderFormProps> = ({ caseData }) =
   }), []);
 
   return (
-    <div className="space-y-4 pt-4 border-t border-dark-border">
+    <AutoSaveFormWrapper
+      caseId={caseData.id}
+      formType={FORM_TYPES.BUILDER_POSITIVE}
+      formData={report}
+      images={report?.images || []}
+      onFormDataChange={handleFormDataChange}
+      onImagesChange={handleAutoSaveImagesChange}
+      onDataRestored={handleDataRestored}
+      autoSaveOptions={{
+        enableAutoSave: !isReadOnly,
+        showIndicator: !isReadOnly,
+        showRecoveryModal: !isReadOnly,
+      }}
+    >
+      <div className="space-y-4 pt-4 border-t border-dark-border">
       <h3 className="text-lg font-semibold text-brand-primary">Positive Builder Report</h3>
 
       {/* Customer Information Section */}
@@ -359,6 +394,10 @@ const PositiveBuilderForm: React.FC<PositiveBuilderFormProps> = ({ caseData }) =
                 }}
                 onConfirm={() => {
                     updateCaseStatus(caseData.id, CaseStatus.Completed);
+                    // Mark auto-save as completed
+                    if ((window as any).markAutoSaveFormCompleted) {
+                      (window as any).markAutoSaveFormCompleted();
+                    }
                     setIsConfirmModalOpen(false);
                 }}
                 title="Submit or Save Case"
@@ -371,7 +410,8 @@ const PositiveBuilderForm: React.FC<PositiveBuilderFormProps> = ({ caseData }) =
             </ConfirmationModal>
           </>
       )}
-    </div>
+      </div>
+    </AutoSaveFormWrapper>
   );
 };
 

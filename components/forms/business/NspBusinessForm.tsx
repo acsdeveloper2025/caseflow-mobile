@@ -9,6 +9,8 @@ import { FormField, SelectField, TextAreaField, NumberDropdownField } from '../.
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
+import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
+import { FORM_TYPES } from '../../../constants/formTypes';
 
 interface NspBusinessFormProps {
   caseData: Case;
@@ -24,6 +26,25 @@ const NspBusinessForm: React.FC<NspBusinessFormProps> = ({ caseData }) => {
   const report = caseData.nspBusinessReport;
   const isReadOnly = caseData.status === CaseStatus.Completed || caseData.isSaved;
   const MIN_IMAGES = 5;
+
+  // Auto-save handlers
+  const handleFormDataChange = (formData: any) => {
+    if (!isReadOnly) {
+      updateNspBusinessReport(caseData.id, formData);
+    }
+  };
+
+  const handleAutoSaveImagesChange = (images: CapturedImage[]) => {
+    if (!isReadOnly && report) {
+      updateNspBusinessReport(caseData.id, { ...report, images });
+    }
+  };
+
+  const handleDataRestored = (data: any) => {
+    if (!isReadOnly && data.formData) {
+      updateNspBusinessReport(caseData.id, data.formData);
+    }
+  };
 
   if (!report) {
     return <p className="text-medium-text">No NSP Business report data available.</p>;
@@ -120,7 +141,21 @@ const NspBusinessForm: React.FC<NspBusinessFormProps> = ({ caseData }) => {
   }), []);
 
   return (
-    <div className="space-y-4 pt-4 border-t border-dark-border">
+    <AutoSaveFormWrapper
+      caseId={caseData.id}
+      formType={FORM_TYPES.BUSINESS_NSP}
+      formData={report}
+      images={report?.images || []}
+      onFormDataChange={handleFormDataChange}
+      onImagesChange={handleAutoSaveImagesChange}
+      onDataRestored={handleDataRestored}
+      autoSaveOptions={{
+        enableAutoSave: !isReadOnly,
+        showIndicator: !isReadOnly,
+        showRecoveryModal: !isReadOnly,
+      }}
+    >
+      <div className="space-y-4 pt-4 border-t border-dark-border">
       <h3 className="text-lg font-semibold text-brand-primary">NSP Business Report</h3>
 
       {/* Customer Information Section */}
@@ -314,6 +349,10 @@ const NspBusinessForm: React.FC<NspBusinessFormProps> = ({ caseData }) => {
                 }}
                 onConfirm={() => {
                     updateCaseStatus(caseData.id, CaseStatus.Completed);
+                    // Mark auto-save as completed
+                    if ((window as any).markAutoSaveFormCompleted) {
+                      (window as any).markAutoSaveFormCompleted();
+                    }
                     setIsConfirmModalOpen(false);
                 }}
                 title="Submit or Save Case"
@@ -326,7 +365,8 @@ const NspBusinessForm: React.FC<NspBusinessFormProps> = ({ caseData }) => {
             </ConfirmationModal>
           </>
       )}
-    </div>
+      </div>
+    </AutoSaveFormWrapper>
   );
 };
 

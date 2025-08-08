@@ -7,6 +7,8 @@ import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
+import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
+import { FORM_TYPES } from '../../../constants/formTypes';
 
 interface UntraceableBusinessFormProps {
   caseData: Case;
@@ -22,6 +24,25 @@ const UntraceableBusinessForm: React.FC<UntraceableBusinessFormProps> = ({ caseD
   const report = caseData.untraceableBusinessReport;
   const isReadOnly = caseData.status === CaseStatus.Completed || caseData.isSaved;
   const MIN_IMAGES = 5;
+
+  // Auto-save handlers
+  const handleFormDataChange = (formData: any) => {
+    if (!isReadOnly) {
+      updateUntraceableBusinessReport(caseData.id, formData);
+    }
+  };
+
+  const handleAutoSaveImagesChange = (images: CapturedImage[]) => {
+    if (!isReadOnly && report) {
+      updateUntraceableBusinessReport(caseData.id, { ...report, images });
+    }
+  };
+
+  const handleDataRestored = (data: any) => {
+    if (!isReadOnly && data.formData) {
+      updateUntraceableBusinessReport(caseData.id, data.formData);
+    }
+  };
 
   if (!report) {
     return <p className="text-medium-text">No Untraceable Business report data available.</p>;
@@ -81,7 +102,21 @@ const UntraceableBusinessForm: React.FC<UntraceableBusinessFormProps> = ({ caseD
   }), []);
 
   return (
-    <div className="space-y-4 pt-4 border-t border-dark-border">
+    <AutoSaveFormWrapper
+      caseId={caseData.id}
+      formType={FORM_TYPES.BUSINESS_UNTRACEABLE}
+      formData={report}
+      images={report?.images || []}
+      onFormDataChange={handleFormDataChange}
+      onImagesChange={handleAutoSaveImagesChange}
+      onDataRestored={handleDataRestored}
+      autoSaveOptions={{
+        enableAutoSave: !isReadOnly,
+        showIndicator: !isReadOnly,
+        showRecoveryModal: !isReadOnly,
+      }}
+    >
+      <div className="space-y-4 pt-4 border-t border-dark-border">
       <h3 className="text-lg font-semibold text-brand-primary">Untraceable Business Report</h3>
 
       {/* Customer Information Section */}
@@ -209,6 +244,10 @@ const UntraceableBusinessForm: React.FC<UntraceableBusinessFormProps> = ({ caseD
                 }}
                 onConfirm={() => {
                     updateCaseStatus(caseData.id, CaseStatus.Completed);
+                    // Mark auto-save as completed
+                    if ((window as any).markAutoSaveFormCompleted) {
+                      (window as any).markAutoSaveFormCompleted();
+                    }
                     setIsConfirmModalOpen(false);
                 }}
                 title="Submit or Save Case"
@@ -221,7 +260,8 @@ const UntraceableBusinessForm: React.FC<UntraceableBusinessFormProps> = ({ caseD
             </ConfirmationModal>
           </>
       )}
-    </div>
+      </div>
+    </AutoSaveFormWrapper>
   );
 };
 

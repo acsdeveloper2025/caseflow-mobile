@@ -9,6 +9,8 @@ import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
+import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
+import { FORM_TYPES } from '../../../constants/formTypes';
 
 interface PositiveDsaFormProps {
   caseData: Case;
@@ -24,6 +26,25 @@ const PositiveDsaForm: React.FC<PositiveDsaFormProps> = ({ caseData }) => {
   const report = caseData.positiveDsaReport;
   const isReadOnly = caseData.status === CaseStatus.Completed || caseData.isSaved;
   const MIN_IMAGES = 5;
+
+  // Auto-save handlers
+  const handleFormDataChange = (formData: any) => {
+    if (!isReadOnly) {
+      updatePositiveDsaReport(caseData.id, formData);
+    }
+  };
+
+  const handleAutoSaveImagesChange = (images: CapturedImage[]) => {
+    if (!isReadOnly && report) {
+      updatePositiveDsaReport(caseData.id, { ...report, images });
+    }
+  };
+
+  const handleDataRestored = (data: any) => {
+    if (!isReadOnly && data.formData) {
+      updatePositiveDsaReport(caseData.id, data.formData);
+    }
+  };
 
   if (!report) {
     return <p className="text-medium-text">No Positive DSA/DST report data available.</p>;
@@ -123,7 +144,21 @@ const PositiveDsaForm: React.FC<PositiveDsaFormProps> = ({ caseData }) => {
   }), []);
 
   return (
-    <div className="space-y-4 pt-4 border-t border-dark-border">
+    <AutoSaveFormWrapper
+      caseId={caseData.id}
+      formType={FORM_TYPES.DSA_POSITIVE}
+      formData={report}
+      images={report?.images || []}
+      onFormDataChange={handleFormDataChange}
+      onImagesChange={handleAutoSaveImagesChange}
+      onDataRestored={handleDataRestored}
+      autoSaveOptions={{
+        enableAutoSave: !isReadOnly,
+        showIndicator: !isReadOnly,
+        showRecoveryModal: !isReadOnly,
+      }}
+    >
+      <div className="space-y-4 pt-4 border-t border-dark-border">
       <h3 className="text-lg font-semibold text-brand-primary">Positive DSA Report</h3>
 
       {/* Customer Information Section */}
@@ -404,6 +439,10 @@ const PositiveDsaForm: React.FC<PositiveDsaFormProps> = ({ caseData }) => {
                 }}
                 onConfirm={() => {
                     updateCaseStatus(caseData.id, CaseStatus.Completed);
+                    // Mark auto-save as completed
+                    if ((window as any).markAutoSaveFormCompleted) {
+                      (window as any).markAutoSaveFormCompleted();
+                    }
                     setIsConfirmModalOpen(false);
                 }}
                 title="Submit or Save Case"
@@ -416,7 +455,8 @@ const PositiveDsaForm: React.FC<PositiveDsaFormProps> = ({ caseData }) => {
             </ConfirmationModal>
           </>
       )}
-    </div>
+      </div>
+    </AutoSaveFormWrapper>
   );
 };
 

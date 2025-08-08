@@ -8,6 +8,8 @@ import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
+import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
+import { FORM_TYPES } from '../../../constants/formTypes';
 
 interface EntryRestrictedDsaFormProps {
   caseData: Case;
@@ -23,6 +25,25 @@ const EntryRestrictedDsaForm: React.FC<EntryRestrictedDsaFormProps> = ({ caseDat
   const report = caseData.entryRestrictedDsaReport;
   const isReadOnly = caseData.status === CaseStatus.Completed || caseData.isSaved;
   const MIN_IMAGES = 5;
+
+  // Auto-save handlers
+  const handleFormDataChange = (formData: any) => {
+    if (!isReadOnly) {
+      updateEntryRestrictedDsaReport(caseData.id, formData);
+    }
+  };
+
+  const handleAutoSaveImagesChange = (images: CapturedImage[]) => {
+    if (!isReadOnly && report) {
+      updateEntryRestrictedDsaReport(caseData.id, { ...report, images });
+    }
+  };
+
+  const handleDataRestored = (data: any) => {
+    if (!isReadOnly && data.formData) {
+      updateEntryRestrictedDsaReport(caseData.id, data.formData);
+    }
+  };
 
   if (!report) {
     return <p className="text-medium-text">No Entry Restricted DSA/DST report data available.</p>;

@@ -376,7 +376,7 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
 
   return (
     <>
-    <div className={`bg-dark-card rounded-lg shadow-lg mb-4 mx-4 p-4 transition-all duration-300 ${statusColor[caseData.status]} ${hasAutoSaveData ? 'ring-2 ring-yellow-400 bg-yellow-50/5' : ''}`}>
+    <div className={`bg-dark-card rounded-lg shadow-lg mb-4 mx-4 p-4 transition-all duration-300 ${statusColor[caseData.status]} ${hasAutoSaveData ? 'ring-2 ring-yellow-400 bg-yellow-900/20 border-yellow-400/50' : ''}`}>
       <div
         className={`flex justify-between items-start ${(caseData.status !== CaseStatus.Assigned && caseData.status !== CaseStatus.Completed && !caseData.isSaved) ? 'cursor-pointer' : ''}`}
         onClick={(caseData.status !== CaseStatus.Assigned && caseData.status !== CaseStatus.Completed && !caseData.isSaved) ? () => setIsExpanded(!isExpanded) : undefined}
@@ -384,7 +384,14 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
         <div className="flex-1">
           <div className="flex justify-between items-start">
               <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-brand-primary mb-1">{caseData.verificationType}</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-brand-primary">{caseData.verificationType}</p>
+                    {hasAutoSaveData && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-400/20 text-yellow-300 border border-yellow-400/30">
+                        📝 Draft Saved
+                      </span>
+                    )}
+                  </div>
                   <h3 className="font-bold text-lg text-light-text">{caseData.title}</h3>
               </div>
               {timestamp.value && <p className="text-xs text-gray-400 text-right shrink-0 ml-2">{`${timestamp.label}`}<br/>{`${timestamp.value}`}</p>}
