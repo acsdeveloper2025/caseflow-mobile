@@ -2,6 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Brand color utilities */
+@layer utilities {
+  .bg-brand-primary {
+    background-color: #00a950;
+  }
+  .bg-brand-secondary {
+    background-color: #008a44;
+  }
+  .border-brand-primary {
+    border-color: #00a950;
+  }
+  .hover\:bg-brand-secondary:hover {
+    background-color: #008a44;
+  }
+}
+
+/* Default text colors for dark theme */
+@layer base {
+  /* Ensure all text elements have proper colors on dark background */
+  p, span, div {
+    color: #F9FAFB; /* light-text */
+  }
+
+  /* Default header colors - but allow utilities to override */
+  h1, h2, h3, h4, h5, h6 {
+    color: #F9FAFB; /* light-text */
+  }
+}
+
+/* Brand color utilities with higher specificity */
+@layer utilities {
+  .text-brand-primary {
+    color: #00a950 !important;
+  }
+  .text-brand-secondary {
+    color: #008a44 !important;
+  }
+}
+
 html, body, #root {
   width: 100%;
   height: 100%;
