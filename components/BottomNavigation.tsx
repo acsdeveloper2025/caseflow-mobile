@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { HomeIcon, ListTodoIcon, ClockIcon, CheckCircle2Icon, StarIcon, UserIcon } from './Icons';
+import { HomeIcon, ListTodoIcon, ClockIcon, CheckCircle2Icon, StarIcon } from './Icons';
 import { useSafeArea } from './SafeAreaProvider';
 
 interface TabItem {
@@ -22,7 +22,6 @@ const BottomNavigation: React.FC = () => {
     { name: 'In Progress', route: '/cases/in-progress', icon: ClockIcon, label: 'In Progress' },
     { name: 'Completed', route: '/cases/completed', icon: CheckCircle2Icon, label: 'Completed' },
     { name: 'Saved', route: '/cases/saved', icon: StarIcon, label: 'Saved' },
-    { name: 'Profile', route: '/profile', icon: UserIcon, label: 'Profile' },
   ];
 
   const isActive = (route: string) => {
