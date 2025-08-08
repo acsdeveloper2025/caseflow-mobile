@@ -5,7 +5,7 @@ import {
   FeedbackFromNeighbour, FinalStatus, CaseStatus, CapturedImage
 } from '../../../types';
 import { useCases } from '../../../context/CaseContext';
-import { FormField, SelectField, TextAreaField } from '../../FormControls';
+import { FormField, SelectField, TextAreaField, NumberDropdownField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
@@ -233,8 +233,8 @@ const PositivePropertyIndividualForm: React.FC<PositivePropertyIndividualFormPro
             <option value="">Select...</option>
             {options.localityType}
           </SelectField>
-          <FormField label="Address Structure" id="addressStructure" name="addressStructure" value={report.addressStructure} onChange={handleChange} placeholder="e.g., G+7" disabled={isReadOnly} />
-          <FormField label="Address Exist At (Floor)" id="addressExistAt" name="addressExistAt" value={report.addressExistAt} onChange={handleChange} placeholder="e.g., 4" disabled={isReadOnly} />
+          <NumberDropdownField label="Address Structure" id="addressStructure" name="addressStructure" value={report.addressStructure || ''} onChange={handleChange} min={1} max={150} disabled={isReadOnly} />
+          <NumberDropdownField label="Address Exist At (Floor)" id="addressExistAt" name="addressExistAt" value={report.addressExistAt || ''} onChange={handleChange} min={1} max={150} disabled={isReadOnly} />
           <FormField label="Address Structure Color" id="addressStructureColor" name="addressStructureColor" value={report.addressStructureColor} onChange={handleChange} disabled={isReadOnly} />
           <FormField label="Door Color" id="doorColor" name="doorColor" value={report.doorColor} onChange={handleChange} disabled={isReadOnly} />
         </div>
