@@ -17,11 +17,11 @@ const BottomNavigation: React.FC = () => {
   const { insets, deviceInfo, isNative } = useSafeArea();
 
   const tabs: TabItem[] = [
-    { name: 'Dashboard', route: '/', icon: HomeIcon, label: 'Home' },
+    { name: 'Dashboard', route: '/', icon: HomeIcon, label: 'Dashboard' },
     { name: 'Assigned', route: '/cases/assigned', icon: ListTodoIcon, label: 'Assigned' },
     { name: 'In Progress', route: '/cases/in-progress', icon: ClockIcon, label: 'In Progress' },
-    { name: 'Completed', route: '/cases/completed', icon: CheckCircle2Icon, label: 'Completed' },
     { name: 'Saved', route: '/cases/saved', icon: StarIcon, label: 'Saved' },
+    { name: 'Completed', route: '/cases/completed', icon: CheckCircle2Icon, label: 'Completed' },
   ];
 
   const isActive = (route: string) => {
