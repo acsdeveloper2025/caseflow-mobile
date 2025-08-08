@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { Case, CaseStatus, VerificationOutcome, ResidenceReportData, ShiftedResidenceReportData, NspResidenceReportData, EntryRestrictedResidenceReportData, UntraceableResidenceReportData, ResiCumOfficeReportData, ShiftedResiCumOfficeReportData, NspResiCumOfficeReportData, EntryRestrictedResiCumOfficeReportData, UntraceableResiCumOfficeReportData, PositiveOfficeReportData, ShiftedOfficeReportData, NspOfficeReportData, EntryRestrictedOfficeReportData, UntraceableOfficeReportData, PositiveBusinessReportData, ShiftedBusinessReportData, NspBusinessReportData, EntryRestrictedBusinessReportData, UntraceableBusinessReportData, PositiveBuilderReportData, ShiftedBuilderReportData, NspBuilderReportData, EntryRestrictedBuilderReportData, UntraceableBuilderReportData, PositiveNocReportData, ShiftedNocReportData, NspNocReportData, EntryRestrictedNocReportData, UntraceableNocReportData, PositiveDsaReportData, ShiftedDsaReportData, NspDsaReportData, EntryRestrictedDsaReportData, UntraceableDsaReportData, PositivePropertyApfReportData, NspPropertyApfReportData, EntryRestrictedPropertyApfReportData, UntraceablePropertyApfReportData, PositivePropertyIndividualReportData, NspPropertyIndividualReportData, EntryRestrictedPropertyIndividualReportData, UntraceablePropertyIndividualReportData, RevokeReason } from '../types';
 import { caseService } from '../services/caseService';
+import { priorityService } from '../services/priorityService';
 import { useAuth } from './AuthContext';
 import { getReportInfo } from '../data/initialReportData';
 
@@ -59,6 +60,10 @@ interface CaseContextType {
   revokeCase: (caseId: string, reason: RevokeReason) => Promise<void>;
   reorderInProgressCase: (caseId: string, direction: 'up' | 'down') => Promise<void>;
   syncCases: () => Promise<void>;
+  // Priority management functions
+  setCasePriority: (caseId: string, priority: number | null) => void;
+  getCasePriority: (caseId: string) => number | null;
+  getCasesWithPriorities: () => Case[];
 }
 
 const CaseContext = createContext<CaseContextType | undefined>(undefined);
@@ -991,6 +996,35 @@ export const CaseProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Priority management functions
+  const setCasePriority = (caseId: string, priority: number | null) => {
+    if (priority === null || priority === undefined) {
+      priorityService.removePriority(caseId);
+    } else {
+      priorityService.setPriority(caseId, priority);
+    }
+  };
+
+  const getCasePriority = (caseId: string): number | null => {
+    return priorityService.getPriority(caseId);
+  };
+
+  const getCasesWithPriorities = (): Case[] => {
+    const priorities = priorityService.getAllPriorities();
+    return cases.map(caseItem => ({
+      ...caseItem,
+      priority: priorities[caseItem.id] || undefined
+    }));
+  };
+
+  // Clean up priorities for non-existent cases on load
+  useEffect(() => {
+    if (cases.length > 0) {
+      const caseIds = cases.map(c => c.id);
+      priorityService.cleanupPriorities(caseIds);
+    }
+  }, [cases]);
+
   return (
     <CaseContext.Provider value={{
       cases,
@@ -1047,6 +1081,9 @@ export const CaseProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       revokeCase,
       reorderInProgressCase,
       syncCases,
+      setCasePriority,
+      getCasePriority,
+      getCasesWithPriorities,
     }}>
       {children}
     </CaseContext.Provider>
