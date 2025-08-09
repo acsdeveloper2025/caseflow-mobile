@@ -70,9 +70,6 @@ export default defineConfig(({ mode }) => {
               // Crypto utilities
               'crypto-vendor': ['crypto-js'],
 
-              // AI/Gemini
-              'ai-vendor': ['@google/genai'],
-
               // Forms - split by category
               'forms-residence': [
                 './components/forms/residence/PositiveResidenceForm',
