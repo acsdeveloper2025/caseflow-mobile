@@ -340,6 +340,7 @@ const NspNocForm: React.FC<NspNocFormProps> = ({ caseData }) => {
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+        compact={true}
       />
 
       {/* Selfie Capture Section */}
@@ -349,6 +350,7 @@ const NspNocForm: React.FC<NspNocFormProps> = ({ caseData }) => {
         isReadOnly={isReadOnly}
         required={true}
         title="🤳 Verification Selfie (Required)"
+        compact={true}
       />
 
       {!isReadOnly && caseData.status === CaseStatus.InProgress && (

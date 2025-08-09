@@ -219,6 +219,7 @@ const UntraceableBuilderForm: React.FC<UntraceableBuilderFormProps> = ({ caseDat
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+        compact={true}
       />
 
       {/* Selfie Capture Section */}

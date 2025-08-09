@@ -262,6 +262,7 @@ const EntryRestrictedBusinessForm: React.FC<EntryRestrictedBusinessFormProps> = 
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+        compact={true}
       />
 
       {/* Selfie Capture Section */}
