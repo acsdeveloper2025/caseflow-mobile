@@ -49,12 +49,14 @@ import NspPropertyIndividualForm from './forms/property-individual/NspPropertyIn
 import EntryRestrictedPropertyIndividualForm from './forms/property-individual/EntryRestrictedPropertyIndividualForm';
 import UntraceablePropertyIndividualForm from './forms/property-individual/UntraceablePropertyIndividualForm';
 import { SelectField } from './FormControls';
+import CaseTimeline from './CaseTimeline';
 
 interface CaseCardProps {
   caseData: Case;
   isReorderable?: boolean;
   isFirst?: boolean;
   isLast?: boolean;
+  showTimeline?: boolean; // Show timeline for completed cases
 }
 
 const getEnumOptions = (enumObject: object): React.ReactElement[] => Object.values(enumObject).map(value => (
@@ -90,7 +92,7 @@ const verificationOptionsMap: { [key in VerificationType]?: React.ReactElement[]
     }),
 };
 
-const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, isFirst, isLast }) => {
+const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, isFirst, isLast, showTimeline = false }) => {
   const { updateCaseStatus, toggleSaveCase, updateVerificationOutcome, revokeCase, reorderInProgressCase } = useCases();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
@@ -460,6 +462,11 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
             )}
           </div>
       </div>
+
+      {/* Case Timeline - only show for completed cases */}
+      {showTimeline && (
+        <CaseTimeline caseData={caseData} />
+      )}
 
       <div className="mt-4 pt-4 border-t border-dark-border">
         {isAssigned ? (

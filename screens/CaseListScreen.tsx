@@ -19,6 +19,7 @@ interface CaseListScreenProps {
   tabKey: string; // Unique identifier for search state management
   searchPlaceholder?: string;
   customHeaderActions?: React.ReactNode;
+  showTimeline?: boolean; // Show case timeline for completed cases
 }
 
 const CaseListScreen: React.FC<CaseListScreenProps> = ({
@@ -29,7 +30,8 @@ const CaseListScreen: React.FC<CaseListScreenProps> = ({
   isReorderable = false,
   tabKey,
   searchPlaceholder = "Search cases...",
-  customHeaderActions
+  customHeaderActions,
+  showTimeline = false
 }) => {
   const { cases, loading } = useCases();
   const navigate = useNavigate();
@@ -140,6 +142,7 @@ const CaseListScreen: React.FC<CaseListScreenProps> = ({
             isReorderable={isReorderable}
             isFirst={index === 0}
             isLast={index === processedCases.length - 1}
+            showTimeline={showTimeline}
           />
         )}
         keyExtractor={(item: Case) => item.id}
