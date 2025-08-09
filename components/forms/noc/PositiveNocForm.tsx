@@ -278,6 +278,7 @@ const PositiveNocForm: React.FC<PositiveNocFormProps> = ({ caseData }) => {
         isReadOnly={isReadOnly}
         required={true}
         title="🤳 Verification Selfie (Required)"
+        compact={true}
       />
 
       {!isReadOnly && caseData.status === CaseStatus.InProgress && (

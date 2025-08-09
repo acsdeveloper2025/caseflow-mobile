@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CapturedImage } from '../types';
 import { CameraIcon } from './Icons';
-import ImageModal from './ImageModal';
 import { AddressComponents } from '../services/googleMapsService';
 
 interface CompactImageDisplayProps {
@@ -243,19 +242,96 @@ const CompactImageDisplay: React.FC<CompactImageDisplayProps> = ({
         )}
       </div>
 
-      {/* Image Modal */}
+      {/* Simple Image Modal */}
       {selectedImage && (
-        <ImageModal
-          image={selectedImage}
-          isVisible={!!selectedImage}
-          onClose={closeModal}
-          onDelete={!isReadOnly ? () => {
-            handleDeleteImage(selectedImage.id);
-            closeModal();
-          } : undefined}
-          enhancedAddress={imageMetadata[selectedImage.id]?.enhancedAddress}
-          validationResult={imageMetadata[selectedImage.id]?.validationResult}
-        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="bg-gray-900 rounded-lg max-w-4xl max-h-[90vh] w-full overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <h3 className="text-lg font-semibold text-light-text">
+                {componentType === 'selfie' ? 'Selfie Photo' : 'Photo'} Details
+              </h3>
+              <div className="flex items-center gap-2">
+                {!isReadOnly && (
+                  <button
+                    onClick={() => {
+                      handleDeleteImage(selectedImage.id);
+                      closeModal();
+                    }}
+                    className="px-3 py-1.5 text-sm bg-red-600 hover:bg-red-500 text-white rounded-md transition-colors"
+                  >
+                    Delete
+                  </button>
+                )}
+                <button
+                  onClick={closeModal}
+                  className="px-3 py-1.5 text-sm bg-gray-600 hover:bg-gray-500 text-white rounded-md transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-4 max-h-[calc(90vh-120px)] overflow-y-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Image */}
+                <div className="space-y-4">
+                  <img
+                    src={selectedImage.dataUrl}
+                    alt={componentType === 'selfie' ? 'Selfie photo' : 'Captured photo'}
+                    className="w-full h-auto max-h-96 object-contain rounded-lg border border-gray-700"
+                  />
+                </div>
+
+                {/* Metadata */}
+                <div className="space-y-4">
+                  {/* Capture Time */}
+                  <div className="bg-gray-800/50 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-brand-primary">🕒</span>
+                      <span className="font-medium text-light-text">Capture Time</span>
+                    </div>
+                    <div className="text-medium-text">
+                      {new Date(selectedImage.timestamp).toLocaleString()}
+                    </div>
+                  </div>
+
+                  {/* Location Information */}
+                  {selectedImage.latitude !== 0 && selectedImage.longitude !== 0 && (
+                    <div className="bg-gray-800/50 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-brand-primary">📍</span>
+                        <span className="font-medium text-light-text">Location</span>
+                      </div>
+                      <div className="text-medium-text font-mono text-sm">
+                        {selectedImage.latitude.toFixed(6)}, {selectedImage.longitude.toFixed(6)}
+                      </div>
+                      {(selectedImage as any).accuracy && (
+                        <div className="text-xs text-gray-400 mt-1">
+                          Accuracy: ±{Math.round((selectedImage as any).accuracy)}m
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Address Information */}
+                  {imageMetadata[selectedImage.id]?.address && (
+                    <div className="bg-gray-800/50 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-brand-primary">🏠</span>
+                        <span className="font-medium text-light-text">Address</span>
+                      </div>
+                      <div className="text-medium-text text-sm">
+                        {imageMetadata[selectedImage.id].address}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
