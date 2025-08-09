@@ -57,7 +57,6 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
           showPermissionDeniedAlert('Camera');
         }
         setError('Camera permission is required to take photos');
-        setIsLoading(false);
         return;
       }
 
@@ -71,12 +70,20 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
       });
 
       if (image.dataUrl) {
-        await processImage(image.dataUrl);
+        // Add timeout to prevent hanging
+        await Promise.race([
+          processImage(image.dataUrl),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Image processing timeout')), 15000)
+          )
+        ]);
       } else {
         throw new Error('Failed to capture image');
       }
     } catch (error) {
       console.warn('Native camera failed, falling back to web camera:', error);
+      setError('Camera capture failed. Please try again.');
+
       // Fallback to web camera
       if (fileInputRef.current) {
         fileInputRef.current.click();
@@ -87,56 +94,80 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
   };
 
   const processImage = async (dataUrl: string) => {
+    console.log('🔄 Starting image processing...');
     try {
-      // Initialize Google Maps service
-      await googleMapsService.initialize();
-
       // Get enhanced location data
       let enhancedLocation: EnhancedLocationData | null = null;
       let latitude = 0;
       let longitude = 0;
-      let accuracy;
+      let accuracy: number | undefined;
 
       try {
         // Request location permissions first
         const locationPermission = await requestLocationPermissions();
 
         if (locationPermission.granted) {
-          // Use enhanced geolocation service
-          enhancedLocation = await enhancedGeolocationService.getCurrentLocation({
-            enableHighAccuracy: true,
-            timeout: 10000,
-            includeAddress: true,
-            validateLocation: true,
-            fallbackToNominatim: true
-          });
+          console.log('📍 Location permission granted, getting location...');
 
-          latitude = enhancedLocation.latitude;
-          longitude = enhancedLocation.longitude;
-          accuracy = enhancedLocation.accuracy;
+          // Initialize Google Maps service (non-blocking)
+          try {
+            await googleMapsService.initialize();
+            console.log('🗺️ Google Maps initialized successfully');
+          } catch (mapsError) {
+            console.warn('Google Maps initialization failed, proceeding with basic geolocation:', mapsError);
+          }
+
+          // Use enhanced geolocation service with timeout
+          try {
+            enhancedLocation = await Promise.race([
+              enhancedGeolocationService.getCurrentLocation({
+                enableHighAccuracy: true,
+                timeout: 6000, // Reduced timeout to prevent hanging
+                includeAddress: true,
+                validateLocation: true,
+                fallbackToNominatim: true
+              }),
+              new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('Enhanced geolocation timeout')), 7000)
+              )
+            ]);
+
+            latitude = enhancedLocation.latitude;
+            longitude = enhancedLocation.longitude;
+            accuracy = enhancedLocation.accuracy;
+            console.log('✅ Enhanced geolocation successful');
+          } catch (enhancedError) {
+            console.warn('Enhanced geolocation failed, trying basic fallback:', enhancedError);
+
+            // Fallback to basic Capacitor geolocation
+            try {
+              const position = await Promise.race([
+                Geolocation.getCurrentPosition({
+                  enableHighAccuracy: true,
+                  timeout: 4000, // Reduced timeout
+                }),
+                new Promise<never>((_, reject) =>
+                  setTimeout(() => reject(new Error('Basic geolocation timeout')), 5000)
+                )
+              ]);
+              latitude = position.coords.latitude;
+              longitude = position.coords.longitude;
+              accuracy = position.coords.accuracy;
+              console.log('✅ Basic geolocation successful');
+            } catch (fallbackError) {
+              console.warn('All geolocation methods failed, proceeding without location:', fallbackError);
+            }
+          }
         } else {
           console.warn('Location permission not granted, proceeding without location');
         }
-      } catch (geoError) {
-        console.warn('Enhanced geolocation failed, trying fallback:', geoError);
-
-        // Fallback to basic Capacitor geolocation
-        try {
-          const position = await Geolocation.getCurrentPosition({
-            enableHighAccuracy: true,
-            timeout: 10000,
-          });
-          latitude = position.coords.latitude;
-          longitude = position.coords.longitude;
-          accuracy = position.coords.accuracy;
-        } catch (fallbackError) {
-          console.warn('Fallback geolocation also failed, proceeding without location:', fallbackError);
-        }
+      } catch (permissionError) {
+        console.warn('Location permission request failed, proceeding without location:', permissionError);
       }
 
       const timestamp = new Date().toISOString();
       const newImage: CapturedImage & { accuracy?: number } = {
-        id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `img_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
         dataUrl,
         latitude,
         longitude,
@@ -158,16 +189,23 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
         }));
       }
 
-      // Directly add to images array
+      // Directly add to images array - this should always succeed
+      console.log('✅ Adding image to array:', newImage.id);
       onImagesChange([...images, newImage]);
+      console.log('✅ Image processing completed successfully');
 
       // Fetch address for the new image if location is available but no enhanced data
+      // Do this asynchronously to not block the image saving
       if (latitude !== 0 && longitude !== 0 && !enhancedLocation?.address) {
-        fetchAddressForImage(newImage.id, latitude, longitude);
+        // Don't await this - let it run in background
+        fetchAddressForImage(newImage.id, latitude, longitude).catch(err => {
+          console.warn('Background address fetch failed:', err);
+        });
       }
     } catch (err) {
+      console.error('❌ Image processing error:', err);
       setError('Failed to process captured image. Please try again.');
-      console.error('Image processing error:', err);
+      throw err; // Re-throw to ensure calling function knows about the error
     }
   };
 
@@ -235,43 +273,7 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
     });
   }, [images]);
 
-  const getCurrentPosition = async (): Promise<GeolocationPosition> => {
-    try {
-      // Try Capacitor Geolocation first
-      const position = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 10000,
-      });
 
-      // Convert Capacitor position to standard GeolocationPosition format
-      return {
-        coords: {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-          altitude: position.coords.altitude,
-          altitudeAccuracy: position.coords.altitudeAccuracy,
-          heading: position.coords.heading,
-          speed: position.coords.speed,
-        },
-        timestamp: position.timestamp,
-      } as GeolocationPosition;
-    } catch (error) {
-      // Fallback to web geolocation
-      return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-          reject(new Error('Geolocation is not supported'));
-          return;
-        }
-
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 60000
-        });
-      });
-    }
-  };
 
   const handleFileCapture = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -289,19 +291,24 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
     try {
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const dataUrl = e.target?.result as string;
-        if (!dataUrl) {
-          setError('Failed to process captured image.');
-          setIsLoading(false);
-          return;
-        }
+        try {
+          const dataUrl = e.target?.result as string;
+          if (!dataUrl) {
+            setError('Failed to process captured image.');
+            return;
+          }
 
-        await processImage(dataUrl);
-        setIsLoading(false);
+          await processImage(dataUrl);
+        } catch (processError) {
+          console.error('Image processing error:', processError);
+          setError('Failed to process captured image. Please try again.');
+        } finally {
+          setIsLoading(false);
+        }
       };
 
       reader.onerror = () => {
-        setError('Failed to process captured image.');
+        setError('Failed to read captured image.');
         setIsLoading(false);
       };
 
