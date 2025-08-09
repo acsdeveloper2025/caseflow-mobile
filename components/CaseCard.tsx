@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Case, CaseStatus, VerificationType, VerificationOutcome, RevokeReason } from '../types';
 import { useCases } from '../context/CaseContext';
-import { summarizeReport } from '../services/geminiService';
-import { SparklesIcon, ChevronDownIcon, ChevronUpIcon, CheckIcon, XIcon, InfoIcon, ArrowUpIcon, ArrowDownIcon } from './Icons';
+import { ChevronDownIcon, ChevronUpIcon, CheckIcon, XIcon, InfoIcon, ArrowUpIcon, ArrowDownIcon } from './Icons';
 import Spinner from './Spinner';
 import Modal from './Modal';
 import PriorityInput from './PriorityInput';
@@ -100,9 +99,6 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
 
   // Check for auto-saved data for this case
   const { hasAutoSaveData } = useCaseAutoSaveStatus(caseData.id);
-  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
-  const [summaryContent, setSummaryContent] = useState('');
-  const [isSummarizingReport, setIsSummarizingReport] = useState(false);
   const [isFormExpanding, setIsFormExpanding] = useState(false);
   const [isFormScrollable, setIsFormScrollable] = useState(false);
   const formContentRef = useRef<HTMLDivElement>(null);
@@ -111,15 +107,7 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
   const isInProgress = caseData.status === CaseStatus.InProgress;
   const isCompletedOrSaved = caseData.status === CaseStatus.Completed || caseData.isSaved;
 
-  const handleSummarizeReport = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsSummarizingReport(true);
-    setIsSummaryModalOpen(true);
-    setSummaryContent(''); // Clear previous summary
-    const result = await summarizeReport(caseData);
-    setSummaryContent(result);
-    setIsSummarizingReport(false);
-  };
+
 
   const handleOutcomeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     // Prevent event bubbling to avoid card collapse
@@ -510,15 +498,6 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
                       <ArrowDownIcon />
                   </button>
                 </div>
-              ) : (caseData.isSaved && caseData.status !== CaseStatus.Completed) ? (
-                <button
-                    onClick={handleSummarizeReport}
-                    className="flex items-center gap-1 text-purple-400 hover:text-purple-300 transition-colors p-2 rounded-md hover:bg-white/10"
-                    disabled={isSummarizingReport}
-                >
-                    {isSummarizingReport ? <div className="w-4 h-4"><Spinner size="small" /></div> : <SparklesIcon />}
-                    <span className="text-xs">{isSummarizingReport ? 'Summarizing...' : 'AI Summary'}</span>
-                </button>
               ) : <div />}
             </div>
 
@@ -630,38 +609,7 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
         </div>
     </Modal>
 
-    <Modal isVisible={isSummaryModalOpen} onClose={() => setIsSummaryModalOpen(false)} title="AI Report Summary">
-        {isSummarizingReport ? (
-            <div className="flex justify-center items-center h-24">
-                <Spinner />
-            </div>
-        ) : (
-            <div className="text-light-text space-y-4">
-                <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                    {summaryContent.split('\n').map((line, index) => {
-                        const trimmedLine = line.trim();
-                        if (trimmedLine.startsWith('*') || trimmedLine.startsWith('-')) {
-                            return (
-                                <div key={index} className="flex items-start mb-2">
-                                    <span className="text-brand-primary mr-2 mt-1">&#8226;</span>
-                                    <span>{trimmedLine.substring(1).trim()}</span>
-                                </div>
-                            )
-                        }
-                        return <p key={index} className="mb-2">{line}</p>
-                    })}
-                </div>
-                <div className="flex justify-end pt-4">
-                    <button
-                        onClick={() => setIsSummaryModalOpen(false)}
-                        className="px-4 py-2 rounded-md bg-brand-primary hover:bg-brand-secondary text-white font-semibold"
-                    >
-                        Close
-                    </button>
-                </div>
-            </div>
-        )}
-    </Modal>
+
     </>
   );
 };
