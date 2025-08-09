@@ -233,6 +233,7 @@ const UntraceableResiCumOfficeForm: React.FC<UntraceableResiCumOfficeFormProps> 
         isReadOnly={isReadOnly}
         required={true}
         title="🤳 Verification Selfie (Required)"
+        compact={true}
       />
 
       {!isReadOnly && caseData.status === CaseStatus.InProgress && (
