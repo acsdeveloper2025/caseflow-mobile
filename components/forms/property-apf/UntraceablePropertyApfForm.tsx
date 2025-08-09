@@ -9,6 +9,14 @@ import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
 import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
 import { FORM_TYPES } from '../../../constants/formTypes';
+import {
+  createImageChangeHandler,
+  createSelfieImageChangeHandler,
+  createAutoSaveImagesChangeHandler,
+  combineImagesForAutoSave,
+  createFormDataChangeHandler,
+  createDataRestoredHandler
+} from '../../../utils/imageAutoSaveHelpers';
 
 interface UntraceablePropertyApfFormProps {
   caseData: Case;
@@ -106,7 +114,7 @@ const UntraceablePropertyApfForm: React.FC<UntraceablePropertyApfFormProps> = ({
       caseId={caseData.id}
       formType={FORM_TYPES.PROPERTY_APF_UNTRACEABLE}
       formData={report}
-      images={report?.images || []}
+      images={combineImagesForAutoSave(report)}
       onFormDataChange={handleFormDataChange}
       onImagesChange={handleAutoSaveImagesChange}
       onDataRestored={handleDataRestored}

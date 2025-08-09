@@ -11,6 +11,14 @@ import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
 import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
 import { FORM_TYPES } from '../../../constants/formTypes';
+import {
+  createImageChangeHandler,
+  createSelfieImageChangeHandler,
+  createAutoSaveImagesChangeHandler,
+  combineImagesForAutoSave,
+  createFormDataChangeHandler,
+  createDataRestoredHandler
+} from '../../../utils/imageAutoSaveHelpers';
 
 interface NspResidenceFormProps {
   caseData: Case;
@@ -34,9 +42,18 @@ const NspResidenceForm: React.FC<NspResidenceFormProps> = ({ caseData }) => {
     }
   };
 
-  const handleAutoSaveImagesChange = (images: CapturedImage[]) => {
+  const handleAutoSaveImagesChange = (allImages: CapturedImage[]) => {
+    // This callback is used by AutoSaveFormWrapper for auto-save restoration
+    // Split images based on componentType metadata
     if (!isReadOnly && report) {
-      updateNspResidenceReport(caseData.id, { ...report, images });
+      const selfieImages = allImages.filter(img => img.componentType === 'selfie');
+      const regularImages = allImages.filter(img => img.componentType !== 'selfie');
+
+      updateNspResidenceReport(caseData.id, {
+        ...report,
+        images: regularImages,
+        selfieImages: selfieImages
+      });
     }
   };
 
@@ -120,11 +137,39 @@ const NspResidenceForm: React.FC<NspResidenceFormProps> = ({ caseData }) => {
   };
   
   const handleImagesChange = (images: CapturedImage[]) => {
-    updateNspResidenceReport(caseData.id, { images });
+    // Add metadata to identify these as regular images
+    const imagesWithMetadata = images.map(img => ({
+      ...img,
+      componentType: 'photo' as const
+    }));
+
+    const updatedReport = { ...report, images: imagesWithMetadata };
+    updateNspResidenceReport(caseData.id, updatedReport);
+
+    // Trigger auto-save with all images (regular + selfie)
+    const allImages = [
+      ...imagesWithMetadata,
+      ...(report.selfieImages || []).map(img => ({ ...img, componentType: 'selfie' as const }))
+    ];
+    handleAutoSaveImagesChange(allImages);
   };
 
   const handleSelfieImagesChange = (selfieImages: CapturedImage[]) => {
-    updateNspResidenceReport(caseData.id, { selfieImages });
+    // Add metadata to identify these as selfie images
+    const selfieImagesWithMetadata = selfieImages.map(img => ({
+      ...img,
+      componentType: 'selfie' as const
+    }));
+
+    const updatedReport = { ...report, selfieImages: selfieImagesWithMetadata };
+    updateNspResidenceReport(caseData.id, updatedReport);
+
+    // Trigger auto-save with all images (regular + selfie)
+    const allImages = [
+      ...(report.images || []).map(img => ({ ...img, componentType: 'photo' as const })),
+      ...selfieImagesWithMetadata
+    ];
+    handleAutoSaveImagesChange(allImages);
   };
 
   const options = useMemo(() => ({
@@ -146,7 +191,7 @@ const NspResidenceForm: React.FC<NspResidenceFormProps> = ({ caseData }) => {
       caseId={caseData.id}
       formType={FORM_TYPES.RESIDENCE_NSP}
       formData={report}
-      images={report?.images || []}
+      images={combineImagesForAutoSave(report)}
       onFormDataChange={handleFormDataChange}
       onImagesChange={handleAutoSaveImagesChange}
       onDataRestored={handleDataRestored}

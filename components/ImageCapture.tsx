@@ -113,6 +113,7 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
         latitude,
         longitude,
         timestamp,
+        componentType: componentType || 'photo', // Add componentType metadata for auto-save
         accuracy: accuracy || undefined,
       };
 
