@@ -299,6 +299,7 @@ const EntryRestrictedPropertyApfForm: React.FC<EntryRestrictedPropertyApfFormPro
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+        compact={true}
       />
 
       {/* Selfie Capture Section */}
@@ -308,6 +309,7 @@ const EntryRestrictedPropertyApfForm: React.FC<EntryRestrictedPropertyApfFormPro
         isReadOnly={isReadOnly}
         required={true}
         title="🤳 Verification Selfie (Required)"
+        compact={true}
       />
 
       {!isReadOnly && caseData.status === CaseStatus.InProgress && (

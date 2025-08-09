@@ -8,6 +8,7 @@ interface SelfieCaptureProps {
   isReadOnly?: boolean;
   required?: boolean;
   title?: string;
+  compact?: boolean;
 }
 
 const SelfieCapture: React.FC<SelfieCaptureProps> = ({
@@ -15,8 +16,26 @@ const SelfieCapture: React.FC<SelfieCaptureProps> = ({
   onImagesChange,
   isReadOnly = false,
   required = true,
-  title
+  title,
+  compact = false
 }) => {
+  // If compact mode, don't wrap in additional container
+  if (compact) {
+    return (
+      <ImageCapture
+        images={images}
+        onImagesChange={onImagesChange}
+        isReadOnly={isReadOnly}
+        minImages={required ? 1 : 0}
+        cameraDirection="front"
+        componentType="selfie"
+        title={title}
+        required={required}
+        compact={compact}
+      />
+    );
+  }
+
   return (
     <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-4">
       <ImageCapture
@@ -28,14 +47,15 @@ const SelfieCapture: React.FC<SelfieCaptureProps> = ({
         componentType="selfie"
         title={title}
         required={required}
+        compact={compact}
       />
-      
+
       {required && images.length === 0 && (
         <div className="mt-2 text-sm text-red-400">
           ⚠️ Selfie photo is required for verification
         </div>
       )}
-      
+
       {images.length > 0 && (
         <div className="mt-2 text-sm text-green-400">
           ✅ Selfie photo captured successfully

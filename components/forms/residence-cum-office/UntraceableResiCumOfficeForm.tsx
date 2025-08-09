@@ -223,6 +223,7 @@ const UntraceableResiCumOfficeForm: React.FC<UntraceableResiCumOfficeFormProps> 
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+        compact={true}
       />
 
       {/* Selfie Capture Section */}

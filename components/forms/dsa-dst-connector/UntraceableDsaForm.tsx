@@ -219,6 +219,7 @@ const UntraceableDsaForm: React.FC<UntraceableDsaFormProps> = ({ caseData }) => 
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+        compact={true}
       />
 
       {/* Selfie Capture Section */}

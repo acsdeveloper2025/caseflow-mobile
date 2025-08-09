@@ -286,6 +286,7 @@ const EntryRestrictedResidenceForm: React.FC<EntryRestrictedResidenceFormProps> 
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+        compact={true}
       />
 
       {/* Selfie Capture Section */}

@@ -222,6 +222,7 @@ const UntraceableResidenceForm: React.FC<UntraceableResidenceFormProps> = ({ cas
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+        compact={true}
       />
 
       {/* Selfie Capture Section */}

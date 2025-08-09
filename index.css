@@ -134,6 +134,52 @@ body {
   background: #4B5563;
 }
 
+/* Compact image display system - force thumbnail sizes */
+.compact-image-thumbnail {
+  width: 64px !important;
+  height: 64px !important;
+  min-width: 64px !important;
+  min-height: 64px !important;
+  max-width: 64px !important;
+  max-height: 64px !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.compact-image-container {
+  width: 64px !important;
+  height: 64px !important;
+  min-width: 64px !important;
+  min-height: 64px !important;
+  max-width: 64px !important;
+  max-height: 64px !important;
+  flex-shrink: 0 !important;
+  position: relative !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .compact-image-thumbnail {
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
+    max-width: 56px !important;
+    max-height: 56px !important;
+  }
+
+  .compact-image-container {
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
+    max-width: 56px !important;
+    max-height: 56px !important;
+  }
+}
+
 /* Mobile-specific safe area and layout utilities */
 .safe-area-container {
   padding-top: max(4px, env(safe-area-inset-top));

@@ -400,6 +400,7 @@ const ShiftedDsaForm: React.FC<ShiftedDsaFormProps> = ({ caseData }) => {
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+        compact={true}
       />
 
       {/* Selfie Capture Section */}

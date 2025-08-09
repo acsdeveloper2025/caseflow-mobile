@@ -1,24 +1,55 @@
-import React from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CaseProvider } from './context/CaseContext';
-import NewLoginScreen from './screens/NewLoginScreen';
-import DashboardScreen from './screens/DashboardScreen';
-import CaseListScreen from './screens/CaseListScreen';
-import AssignedCasesScreen from './screens/AssignedCasesScreen';
-import InProgressCasesScreen from './screens/InProgressCasesScreen';
-import CompletedCasesScreen from './screens/CompletedCasesScreen';
-import SavedCasesScreen from './screens/SavedCasesScreen';
-import ProfileScreen from './screens/ProfileScreen';
-import DigitalIdCardScreen from './screens/DigitalIdCardScreen';
 import BottomNavigation from './components/BottomNavigation';
 import { SafeAreaProvider, MobileContainer } from './components/SafeAreaProvider';
 import { ResponsiveLayoutProvider } from './components/ResponsiveLayout';
 import ErrorBoundary from './components/ErrorBoundary';
 import { View } from 'react-native';
+import { googleMapsService } from './services/googleMapsService';
+import { validateEnvironmentConfig, getEnvironmentConfig } from './config/environment';
+
+// Lazy load screens for better code splitting
+const NewLoginScreen = lazy(() => import('./screens/NewLoginScreen'));
+const DashboardScreen = lazy(() => import('./screens/DashboardScreen'));
+const CaseListScreen = lazy(() => import('./screens/CaseListScreen'));
+const AssignedCasesScreen = lazy(() => import('./screens/AssignedCasesScreen'));
+const InProgressCasesScreen = lazy(() => import('./screens/InProgressCasesScreen'));
+const CompletedCasesScreen = lazy(() => import('./screens/CompletedCasesScreen'));
+const SavedCasesScreen = lazy(() => import('./screens/SavedCasesScreen'));
+const ProfileScreen = lazy(() => import('./screens/ProfileScreen'));
+const DigitalIdCardScreen = lazy(() => import('./screens/DigitalIdCardScreen'));
 
 const AppNavigator: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
+
+  // Initialize Google Maps service on app start
+  useEffect(() => {
+    const initializeServices = async () => {
+      try {
+        // Validate environment configuration
+        const config = getEnvironmentConfig();
+        const isValid = validateEnvironmentConfig(config);
+
+        if (isValid) {
+          // Initialize Google Maps service
+          const initialized = await googleMapsService.initialize();
+          if (initialized) {
+            console.log('✅ Google Maps API initialized successfully');
+          } else {
+            console.warn('⚠️ Google Maps API initialization failed - using fallback services');
+          }
+        } else {
+          console.warn('⚠️ Environment configuration invalid - some features may not work');
+        }
+      } catch (error) {
+        console.error('❌ Failed to initialize services:', error);
+      }
+    };
+
+    initializeServices();
+  }, []);
 
   if (isLoading) {
     return (
@@ -36,28 +67,48 @@ const AppNavigator: React.FC = () => {
     );
   }
 
+  // Loading component for lazy-loaded routes
+  const RouteLoader = () => (
+    <MobileContainer>
+      <View style={{
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#111827',
+        height: '100vh'
+      }}>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full"></div>
+          <div style={{ color: '#00a950', fontSize: '16px' }}>Loading screen...</div>
+        </div>
+      </View>
+    </MobileContainer>
+  );
+
   return (
     <MobileContainer>
-      <Routes>
-        {isAuthenticated ? (
-          <>
-            <Route path="/" element={<DashboardScreen />} />
-            <Route path="/cases" element={<CaseListScreen title="All Cases" filter={() => true} emptyMessage="No cases available." tabKey="all" searchPlaceholder="Search all cases..." />} />
-            <Route path="/cases/assigned" element={<AssignedCasesScreen />} />
-            <Route path="/cases/in-progress" element={<InProgressCasesScreen />} />
-            <Route path="/cases/completed" element={<CompletedCasesScreen />} />
-            <Route path="/cases/saved" element={<SavedCasesScreen />} />
-            <Route path="/profile" element={<ProfileScreen />} />
-            <Route path="/digital-id-card" element={<DigitalIdCardScreen />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </>
-        ) : (
-          <>
-            <Route path="/login" element={<NewLoginScreen />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </>
-        )}
-      </Routes>
+      <Suspense fallback={<RouteLoader />}>
+        <Routes>
+          {isAuthenticated ? (
+            <>
+              <Route path="/" element={<DashboardScreen />} />
+              <Route path="/cases" element={<CaseListScreen title="All Cases" filter={() => true} emptyMessage="No cases available." tabKey="all" searchPlaceholder="Search all cases..." />} />
+              <Route path="/cases/assigned" element={<AssignedCasesScreen />} />
+              <Route path="/cases/in-progress" element={<InProgressCasesScreen />} />
+              <Route path="/cases/completed" element={<CompletedCasesScreen />} />
+              <Route path="/cases/saved" element={<SavedCasesScreen />} />
+              <Route path="/profile" element={<ProfileScreen />} />
+              <Route path="/digital-id-card" element={<DigitalIdCardScreen />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </>
+          ) : (
+            <>
+              <Route path="/login" element={<NewLoginScreen />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </>
+          )}
+        </Routes>
+      </Suspense>
       {isAuthenticated && <BottomNavigation />}
     </MobileContainer>
   );

@@ -219,6 +219,7 @@ const UntraceableBusinessForm: React.FC<UntraceableBusinessFormProps> = ({ caseD
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+        compact={true}
       />
 
       {/* Selfie Capture Section */}

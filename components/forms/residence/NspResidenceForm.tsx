@@ -383,6 +383,7 @@ const NspResidenceForm: React.FC<NspResidenceFormProps> = ({ caseData }) => {
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+        compact={true}
       />
 
       {/* Selfie Capture Section */}

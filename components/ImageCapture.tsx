@@ -4,6 +4,9 @@ import { CameraIcon, MapPinIcon, ClockIcon } from './Icons';
 import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capacitor/camera';
 import { Geolocation } from '@capacitor/geolocation';
 import { requestCameraPermissions, requestLocationPermissions, showPermissionDeniedAlert } from '../utils/permissions';
+import CompactImageDisplay from './CompactImageDisplay';
+import { enhancedGeolocationService, EnhancedLocationData } from '../services/enhancedGeolocationService';
+import { googleMapsService } from '../services/googleMapsService';
 
 interface ImageCaptureProps {
   images: CapturedImage[];
@@ -14,12 +17,15 @@ interface ImageCaptureProps {
   componentType?: 'photo' | 'selfie';
   title?: string;
   required?: boolean;
+  compact?: boolean;
 }
 
 interface ImageMetadata {
   address?: string;
   isLoadingAddress?: boolean;
   addressError?: string;
+  enhancedLocation?: EnhancedLocationData;
+  validationResult?: any;
 }
 
 const ImageCapture: React.FC<ImageCaptureProps> = ({
@@ -30,7 +36,8 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
   cameraDirection = 'rear',
   componentType = 'photo',
   title,
-  required = false
+  required = false,
+  compact = false
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +88,11 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
 
   const processImage = async (dataUrl: string) => {
     try {
-      // Get current position using Capacitor Geolocation
+      // Initialize Google Maps service
+      await googleMapsService.initialize();
+
+      // Get enhanced location data
+      let enhancedLocation: EnhancedLocationData | null = null;
       let latitude = 0;
       let longitude = 0;
       let accuracy;
@@ -91,6 +102,26 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
         const locationPermission = await requestLocationPermissions();
 
         if (locationPermission.granted) {
+          // Use enhanced geolocation service
+          enhancedLocation = await enhancedGeolocationService.getCurrentLocation({
+            enableHighAccuracy: true,
+            timeout: 10000,
+            includeAddress: true,
+            validateLocation: true,
+            fallbackToNominatim: true
+          });
+
+          latitude = enhancedLocation.latitude;
+          longitude = enhancedLocation.longitude;
+          accuracy = enhancedLocation.accuracy;
+        } else {
+          console.warn('Location permission not granted, proceeding without location');
+        }
+      } catch (geoError) {
+        console.warn('Enhanced geolocation failed, trying fallback:', geoError);
+
+        // Fallback to basic Capacitor geolocation
+        try {
           const position = await Geolocation.getCurrentPosition({
             enableHighAccuracy: true,
             timeout: 10000,
@@ -98,12 +129,9 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
           latitude = position.coords.latitude;
           longitude = position.coords.longitude;
           accuracy = position.coords.accuracy;
-        } else {
-          console.warn('Location permission not granted, proceeding without location');
+        } catch (fallbackError) {
+          console.warn('Fallback geolocation also failed, proceeding without location:', fallbackError);
         }
-      } catch (geoError) {
-        console.warn('Geolocation failed, proceeding without location:', geoError);
-        // Continue without location data - don't block photo capture
       }
 
       const timestamp = new Date().toISOString();
@@ -117,11 +145,24 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
         accuracy: accuracy || undefined,
       };
 
+      // Store enhanced location data in metadata
+      if (enhancedLocation) {
+        setImageMetadata(prev => ({
+          ...prev,
+          [newImage.id]: {
+            enhancedLocation,
+            address: enhancedLocation.address?.formattedAddress,
+            validationResult: enhancedLocation.validationResult,
+            isLoadingAddress: false
+          }
+        }));
+      }
+
       // Directly add to images array
       onImagesChange([...images, newImage]);
 
-      // Fetch address for the new image if location is available
-      if (latitude !== 0 && longitude !== 0) {
+      // Fetch address for the new image if location is available but no enhanced data
+      if (latitude !== 0 && longitude !== 0 && !enhancedLocation?.address) {
         fetchAddressForImage(newImage.id, latitude, longitude);
       }
     } catch (err) {
@@ -327,6 +368,32 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
           </div>
         )}
       </div>
+    );
+  }
+
+  // Use compact display if requested
+  if (compact) {
+    return (
+      <CompactImageDisplay
+        images={images}
+        onImagesChange={onImagesChange}
+        onTakePhoto={handleTakePhoto}
+        isLoading={isLoading}
+        error={error}
+        title={title || (componentType === 'selfie' ? '🤳 Selfie Photo Capture' : '📷 Photo Capture')}
+        componentType={componentType}
+        required={required}
+        isReadOnly={isReadOnly}
+        imageMetadata={Object.fromEntries(
+          Object.entries(imageMetadata).map(([id, metadata]) => [
+            id,
+            {
+              ...metadata,
+              enhancedAddress: metadata.enhancedLocation?.address
+            }
+          ])
+        )}
+      />
     );
   }
 

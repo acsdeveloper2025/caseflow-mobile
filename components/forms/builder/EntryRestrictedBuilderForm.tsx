@@ -262,6 +262,7 @@ const EntryRestrictedBuilderForm: React.FC<EntryRestrictedBuilderFormProps> = ({
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+        compact={true}
       />
 
       {/* Selfie Capture Section */}
@@ -271,6 +272,7 @@ const EntryRestrictedBuilderForm: React.FC<EntryRestrictedBuilderFormProps> = ({
         isReadOnly={isReadOnly}
         required={true}
         title="🤳 Verification Selfie (Required)"
+        compact={true}
       />
 
       {!isReadOnly && caseData.status === CaseStatus.InProgress && (

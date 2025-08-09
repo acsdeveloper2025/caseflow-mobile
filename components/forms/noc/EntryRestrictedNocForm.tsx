@@ -262,6 +262,7 @@ const EntryRestrictedNocForm: React.FC<EntryRestrictedNocFormProps> = ({ caseDat
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}
         minImages={MIN_IMAGES}
+        compact={true}
       />
 
       {/* Selfie Capture Section */}
