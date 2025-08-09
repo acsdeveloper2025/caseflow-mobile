@@ -6,11 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import { CameraIcon, LogOutIcon, UserIcon } from '../components/Icons';
 import Modal from '../components/Modal';
 import ProfilePhotoCapture from '../components/ProfilePhotoCapture';
+import DataCleanupManager from '../components/DataCleanupManager';
 
 const ProfileScreen: React.FC = () => {
   const { user, logout, updateUserProfile } = useAuth();
   const navigate = useNavigate();
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+  const [showCleanupManager, setShowCleanupManager] = useState(false);
 
   const handlePhotoSave = async (dataUrl: string) => {
     await updateUserProfile({ profilePhotoUrl: dataUrl });
@@ -87,6 +89,25 @@ const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
+            onPress={() => setShowCleanupManager(!showCleanupManager)}
+            style={{
+              width: '100%',
+              backgroundColor: '#7C3AED',
+              padding: 12,
+              borderRadius: 6,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8
+            }}
+          >
+            <Text style={{ color: 'white', fontSize: 20 }}>🧹</Text>
+            <Text style={{ color: 'white', fontWeight: '600', fontSize: 16 }}>
+              {showCleanupManager ? 'Hide Data Cleanup' : 'Data Cleanup Manager'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             onPress={logout}
             style={{
               width: '100%',
@@ -103,6 +124,13 @@ const ProfileScreen: React.FC = () => {
             <Text style={{ color: 'white', fontWeight: '600', fontSize: 16 }}>Logout</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Data Cleanup Manager */}
+        {showCleanupManager && (
+          <View style={{ marginTop: 24 }}>
+            <DataCleanupManager />
+          </View>
+        )}
 
         <Modal isVisible={isPhotoModalOpen} onClose={() => setIsPhotoModalOpen(false)} title="Take Profile Photo">
           <ProfilePhotoCapture onSave={handlePhotoSave} onCancel={() => setIsPhotoModalOpen(false)} />
