@@ -9,6 +9,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { View } from 'react-native';
 import { googleMapsService } from './services/googleMapsService';
 import { validateEnvironmentConfig, getEnvironmentConfig } from './config/environment';
+import { dataCleanupService } from './services/dataCleanupService';
+import { backgroundTaskManager } from './services/backgroundTaskManager';
 
 // Lazy load screens for better code splitting
 const NewLoginScreen = lazy(() => import('./screens/NewLoginScreen'));
@@ -24,7 +26,7 @@ const DigitalIdCardScreen = lazy(() => import('./screens/DigitalIdCardScreen'));
 const AppNavigator: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Initialize Google Maps service on app start
+  // Initialize services on app start
   useEffect(() => {
     const initializeServices = async () => {
       try {
@@ -43,6 +45,14 @@ const AppNavigator: React.FC = () => {
         } else {
           console.warn('⚠️ Environment configuration invalid - some features may not work');
         }
+
+        // Initialize background task manager (includes data cleanup)
+        await backgroundTaskManager.initialize();
+
+        // Initialize data cleanup service
+        await dataCleanupService.initialize();
+
+        console.log('✅ All services initialized successfully');
       } catch (error) {
         console.error('❌ Failed to initialize services:', error);
       }
