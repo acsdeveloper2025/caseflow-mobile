@@ -13,6 +13,14 @@ import SelfieCapture from '../../SelfieCapture';
 import ReadOnlyIndicator from '../../ReadOnlyIndicator';
 import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
 import { FORM_TYPES } from '../../../constants/formTypes';
+import {
+  createImageChangeHandler,
+  createSelfieImageChangeHandler,
+  createAutoSaveImagesChangeHandler,
+  combineImagesForAutoSave,
+  createFormDataChangeHandler,
+  createDataRestoredHandler
+} from '../../../utils/imageAutoSaveHelpers';
 
 interface PositiveResidenceFormProps {
   caseData: Case;
@@ -29,24 +37,25 @@ const PositiveResidenceForm: React.FC<PositiveResidenceFormProps> = ({ caseData 
   const isReadOnly = caseData.status === CaseStatus.Completed || caseData.isSaved;
   const MIN_IMAGES = 5;
 
-  // Auto-save handlers
-  const handleFormDataChange = (formData: any) => {
-    if (!isReadOnly) {
-      updateResidenceReport(caseData.id, formData);
-    }
-  };
+  // Auto-save handlers using helper functions
+  const handleFormDataChange = createFormDataChangeHandler(
+    updateResidenceReport,
+    caseData.id,
+    isReadOnly
+  );
 
-  const handleAutoSaveImagesChange = (images: CapturedImage[]) => {
-    if (!isReadOnly && report) {
-      updateResidenceReport(caseData.id, { ...report, images });
-    }
-  };
+  const handleAutoSaveImagesChange = createAutoSaveImagesChangeHandler(
+    updateResidenceReport,
+    caseData.id,
+    report,
+    isReadOnly
+  );
 
-  const handleDataRestored = (data: any) => {
-    if (!isReadOnly && data.formData) {
-      updateResidenceReport(caseData.id, data.formData);
-    }
-  };
+  const handleDataRestored = createDataRestoredHandler(
+    updateResidenceReport,
+    caseData.id,
+    isReadOnly
+  );
 
   if (!report) {
     return <p className="text-medium-text">No residence report data available for this case.</p>;
@@ -157,13 +166,19 @@ const PositiveResidenceForm: React.FC<PositiveResidenceFormProps> = ({ caseData 
     updateResidenceReport(caseData.id, updates);
   };
   
-  const handleImagesChange = (images: CapturedImage[]) => {
-    updateResidenceReport(caseData.id, { images });
-  };
+  const handleImagesChange = createImageChangeHandler(
+    updateResidenceReport,
+    caseData.id,
+    report,
+    handleAutoSaveImagesChange
+  );
 
-  const handleSelfieImagesChange = (selfieImages: CapturedImage[]) => {
-    updateResidenceReport(caseData.id, { selfieImages });
-  };
+  const handleSelfieImagesChange = createSelfieImageChangeHandler(
+    updateResidenceReport,
+    caseData.id,
+    report,
+    handleAutoSaveImagesChange
+  );
 
   const options = useMemo(() => ({
     addressLocatable: getEnumOptions(AddressLocatable),
@@ -189,7 +204,7 @@ const PositiveResidenceForm: React.FC<PositiveResidenceFormProps> = ({ caseData 
       caseId={caseData.id}
       formType={FORM_TYPES.RESIDENCE_POSITIVE}
       formData={report}
-      images={report?.images || []}
+      images={combineImagesForAutoSave(report)}
       onFormDataChange={handleFormDataChange}
       onImagesChange={handleAutoSaveImagesChange}
       onDataRestored={handleDataRestored}

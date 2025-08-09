@@ -9,6 +9,14 @@ import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
 import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
 import { FORM_TYPES } from '../../../constants/formTypes';
+import {
+  createImageChangeHandler,
+  createSelfieImageChangeHandler,
+  createAutoSaveImagesChangeHandler,
+  combineImagesForAutoSave,
+  createFormDataChangeHandler,
+  createDataRestoredHandler
+} from '../../../utils/imageAutoSaveHelpers';
 
 interface UntraceableResidenceFormProps {
   caseData: Case;
@@ -107,7 +115,7 @@ const UntraceableResidenceForm: React.FC<UntraceableResidenceFormProps> = ({ cas
       caseId={caseData.id}
       formType={FORM_TYPES.RESIDENCE_UNTRACEABLE}
       formData={report}
-      images={report?.images || []}
+      images={combineImagesForAutoSave(report)}
       onFormDataChange={handleFormDataChange}
       onImagesChange={handleAutoSaveImagesChange}
       onDataRestored={handleDataRestored}

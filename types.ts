@@ -459,6 +459,7 @@ export interface CapturedImage {
   latitude: number;
   longitude: number;
   timestamp: string;
+  componentType?: 'photo' | 'selfie'; // Added to distinguish between regular photos and selfies for auto-save
 }
 
 export interface ResidenceReportData {

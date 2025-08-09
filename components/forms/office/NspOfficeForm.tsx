@@ -11,6 +11,14 @@ import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
 import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
 import { FORM_TYPES } from '../../../constants/formTypes';
+import {
+  createImageChangeHandler,
+  createSelfieImageChangeHandler,
+  createAutoSaveImagesChangeHandler,
+  combineImagesForAutoSave,
+  createFormDataChangeHandler,
+  createDataRestoredHandler
+} from '../../../utils/imageAutoSaveHelpers';
 
 interface NspOfficeFormProps {
   caseData: Case;
@@ -139,7 +147,7 @@ const NspOfficeForm: React.FC<NspOfficeFormProps> = ({ caseData }) => {
       caseId={caseData.id}
       formType={FORM_TYPES.OFFICE_NSP}
       formData={report}
-      images={report?.images || []}
+      images={combineImagesForAutoSave(report)}
       onFormDataChange={handleFormDataChange}
       onImagesChange={handleAutoSaveImagesChange}
       onDataRestored={handleDataRestored}

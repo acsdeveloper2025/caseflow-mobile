@@ -11,6 +11,14 @@ import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
 import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
 import { FORM_TYPES } from '../../../constants/formTypes';
+import {
+  createImageChangeHandler,
+  createSelfieImageChangeHandler,
+  createAutoSaveImagesChangeHandler,
+  combineImagesForAutoSave,
+  createFormDataChangeHandler,
+  createDataRestoredHandler
+} from '../../../utils/imageAutoSaveHelpers';
 
 interface ShiftedBusinessFormProps {
   caseData: Case;
@@ -148,7 +156,7 @@ const ShiftedBusinessForm: React.FC<ShiftedBusinessFormProps> = ({ caseData }) =
       caseId={caseData.id}
       formType={FORM_TYPES.BUSINESS_SHIFTED}
       formData={report}
-      images={report?.images || []}
+      images={combineImagesForAutoSave(report)}
       onFormDataChange={handleFormDataChange}
       onImagesChange={handleAutoSaveImagesChange}
       onDataRestored={handleDataRestored}
