@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Case, CaseStatus, VerificationType, VerificationOutcome, RevokeReason } from '../types';
 import { useCases } from '../context/CaseContext';
-import { ChevronDownIcon, ChevronUpIcon, CheckIcon, XIcon, InfoIcon, ArrowUpIcon, ArrowDownIcon } from './Icons';
+import { ChevronDownIcon, ChevronUpIcon, CheckIcon, XIcon, InfoIcon, ArrowUpIcon, ArrowDownIcon, AttachmentIcon } from './Icons';
 import Spinner from './Spinner';
 import Modal from './Modal';
 import PriorityInput from './PriorityInput';
 import { useCaseAutoSaveStatus } from '../hooks/useCaseAutoSaveStatus';
 import CaseTimeline from './CaseTimeline';
+import AttachmentsModal from './AttachmentsModal';
 import PositiveResidenceForm from './forms/residence/PositiveResidenceForm';
 import ShiftedResidenceForm from './forms/residence/ShiftedResidenceForm';
 import NspResidenceForm from './forms/residence/NspResidenceForm';
@@ -99,9 +100,13 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
   const [revokeReason, setRevokeReason] = useState<RevokeReason>(RevokeReason.NotMyArea);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionMessage, setSubmissionMessage] = useState<string | null>(null);
+  const [isAttachmentsModalOpen, setIsAttachmentsModalOpen] = useState(false);
 
   // Check for auto-saved data for this case
   const { hasAutoSaveData } = useCaseAutoSaveStatus(caseData.id);
+
+  // Get attachment count for display
+  const attachmentCount = caseData.attachments?.length || 0;
   const [isFormExpanding, setIsFormExpanding] = useState(false);
   const [isFormScrollable, setIsFormScrollable] = useState(false);
   const formContentRef = useRef<HTMLDivElement>(null);
@@ -446,10 +451,30 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
           </div>
           <div className="flex justify-between items-center mt-1">
             <p className="text-sm text-medium-text">{caseData.customer.name} - {caseData.id}</p>
-            {/* Show priority input only for In Progress cases */}
-            {caseData.status === CaseStatus.InProgress && !caseData.isSaved && (
-              <PriorityInput caseId={caseData.id} />
-            )}
+            <div className="flex items-center gap-3">
+              {/* Show attachment button for In Progress cases */}
+              {caseData.status === CaseStatus.InProgress && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsAttachmentsModalOpen(true);
+                  }}
+                  className="flex flex-col items-center text-purple-400 hover:text-purple-300 transition-colors relative"
+                >
+                  <AttachmentIcon />
+                  <span className="text-xs mt-1">Attachments</span>
+                  {attachmentCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                      {attachmentCount}
+                    </span>
+                  )}
+                </button>
+              )}
+              {/* Show priority input only for In Progress cases */}
+              {caseData.status === CaseStatus.InProgress && !caseData.isSaved && (
+                <PriorityInput caseId={caseData.id} />
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -619,12 +644,27 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
                     <XIcon />
                     <span className="text-xs mt-1">Revoke</span>
                 </button>
-                <button 
+                <button
                     onClick={() => setIsInfoModalOpen(true)}
                     className="flex flex-col items-center text-blue-400 hover:text-blue-300 transition-colors"
                 >
                     <InfoIcon />
                     <span className="text-xs mt-1">Info</span>
+                </button>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsAttachmentsModalOpen(true);
+                    }}
+                    className="flex flex-col items-center text-purple-400 hover:text-purple-300 transition-colors relative"
+                >
+                    <AttachmentIcon />
+                    <span className="text-xs mt-1">Attachments</span>
+                    {attachmentCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                            {attachmentCount}
+                        </span>
+                    )}
                 </button>
             </div>
         ) : (
@@ -752,6 +792,12 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
         </div>
     </Modal>
 
+    {/* Attachments Modal */}
+    <AttachmentsModal
+      caseId={caseData.id}
+      isVisible={isAttachmentsModalOpen}
+      onClose={() => setIsAttachmentsModalOpen(false)}
+    />
 
     </>
   );

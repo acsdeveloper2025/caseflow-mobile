@@ -5,9 +5,9 @@ import { View, Text, TouchableOpacity, Modal as RNModal, SafeAreaView } from 're
 interface ModalProps {
   isVisible: boolean;
   onClose: () => void;
-  title: string;
+  title: string | ReactNode;
   children: ReactNode;
-  size?: string;
+  size?: 'small' | 'medium' | 'large' | 'extra-large';
 }
 
 const Modal: React.FC<ModalProps> = ({ isVisible, onClose, title, children, size }) => {
@@ -25,7 +25,10 @@ const Modal: React.FC<ModalProps> = ({ isVisible, onClose, title, children, size
         backgroundColor: 'rgba(0, 0, 0, 0.7)',
         padding: 16
       }}>
-        <SafeAreaView style={{ width: '100%', maxWidth: size === 'large' ? 800 : 500 }}>
+        <SafeAreaView style={{
+          width: '100%',
+          maxWidth: size === 'extra-large' ? 1200 : size === 'large' ? 800 : size === 'medium' ? 600 : 400
+        }}>
             <View style={{
               backgroundColor: '#1F2937',
               borderRadius: 8,
@@ -44,9 +47,24 @@ const Modal: React.FC<ModalProps> = ({ isVisible, onClose, title, children, size
                   borderBottomWidth: 1,
                   borderBottomColor: '#374151'
                 }}>
-                    <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#F9FAFB' }}>{title}</Text>
-                    <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
-                        <Text style={{ color: '#9CA3AF', fontSize: 24 }}>&times;</Text>
+                    {typeof title === 'string' ? (
+                      <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#F9FAFB' }}>{title}</Text>
+                    ) : (
+                      title
+                    )}
+                    <TouchableOpacity
+                        onPress={onClose}
+                        style={{
+                            padding: 8,
+                            backgroundColor: '#374151',
+                            borderRadius: 6,
+                            minWidth: 32,
+                            minHeight: 32,
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <Text style={{ color: '#F9FAFB', fontSize: 18, fontWeight: 'bold' }}>&times;</Text>
                     </TouchableOpacity>
                 </View>
                 <View>

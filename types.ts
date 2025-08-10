@@ -462,6 +462,19 @@ export interface CapturedImage {
   componentType?: 'photo' | 'selfie'; // Added to distinguish between regular photos and selfies for auto-save
 }
 
+export interface Attachment {
+  id: string;
+  name: string;
+  type: 'pdf' | 'image';
+  mimeType: 'application/pdf' | 'image/jpeg' | 'image/jpg' | 'image/png';
+  size: number; // Size in bytes (max 10MB = 10485760 bytes)
+  url: string;
+  thumbnailUrl?: string; // For images only
+  uploadedAt: string; // ISO timestamp
+  uploadedBy: string;
+  description?: string;
+}
+
 export interface ResidenceReportData {
   addressLocatable: AddressLocatable | null;
   addressRating: AddressRating | null;
@@ -1741,6 +1754,7 @@ export interface Case {
   order?: number;
   priority?: number; // User-defined priority for In Progress cases (1, 2, 3, etc.)
   notes?: string;
+  attachments?: Attachment[]; // Case attachments (PDFs and images, max 10 attachments, 10MB each)
   residenceReport?: ResidenceReportData;
   shiftedResidenceReport?: ShiftedResidenceReportData;
   nspResidenceReport?: NspResidenceReportData;
