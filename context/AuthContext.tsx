@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { User } from '../types';
 import AsyncStorage from '../polyfills/AsyncStorage';
+import { authService } from '../services/authService';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -21,16 +22,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const token = await AsyncStorage.getItem('auth_token');
-        if (token) {
-          const storedUser = await AsyncStorage.getItem('user');
-          if(storedUser) {
-            setUser(JSON.parse(storedUser));
+        const isAuth = await authService.isAuthenticated();
+        if (isAuth) {
+          const currentUser = await authService.getCurrentUser();
+          if (currentUser) {
+            setUser(currentUser);
+            setIsAuthenticated(true);
+          } else {
+            // Token exists but no user data, clear auth
+            await authService.logout();
+            setIsAuthenticated(false);
           }
-          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
         }
       } catch (error) {
         console.error("Failed to check auth status", error);
+        setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
       }
@@ -53,10 +61,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(true);
 
     try {
-      // Simulate network delay
-      await new Promise(res => setTimeout(res, 1000));
-
-      // Comprehensive validation for required fields
+      // Basic validation
       if (!username.trim()) {
         setIsLoading(false);
         return { success: false, error: 'Username is required' };
@@ -78,41 +83,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { success: false, error: 'Password must be at least 4 characters long' };
       }
 
-      // Demo authentication logic - In production, this would make an API call
-      // For demo purposes, accept specific test credentials or any valid format
-      const isValidDemo = (
-        (username.toLowerCase() === 'demo' && password === 'demo123') ||
-        (username.toLowerCase() === 'admin' && password === 'admin123') ||
-        (username.length >= 3 && password.length >= 4)
-      );
+      // Call authentication service
+      const response = await authService.login(username, password);
 
-      if (!isValidDemo) {
+      if (response.success && response.data) {
+        // Update context state
+        setUser(response.data.user);
+        setIsAuthenticated(true);
         setIsLoading(false);
-        return { success: false, error: 'Invalid credentials. Please check your username and password.' };
-      }
-
-      // Create or retrieve user data
-      const storedUser = await AsyncStorage.getItem('user');
-      let mockUser: User;
-
-      if (storedUser && JSON.parse(storedUser).username === username) {
-        mockUser = JSON.parse(storedUser);
+        return { success: true };
       } else {
-        mockUser = {
-          id: `user-${Date.now()}`,
-          name: username === 'demo' ? 'Demo User' : username === 'admin' ? 'Administrator' : 'Field Agent',
-          username
+        setIsLoading(false);
+        return {
+          success: false,
+          error: response.error?.message || 'Login failed. Please check your credentials.'
         };
       }
-
-      // Store authentication data
-      await AsyncStorage.setItem('auth_token', 'mock_jwt_token');
-      await AsyncStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      setIsLoading(false);
-
-      return { success: true };
     } catch (error) {
       console.error('Login error:', error);
       setIsLoading(false);
@@ -121,16 +107,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = async () => {
-    await AsyncStorage.removeItem('auth_token');
-    setUser(null);
-    setIsAuthenticated(false);
+    try {
+      await authService.logout();
+      setUser(null);
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if logout fails, clear local state
+      setUser(null);
+      setIsAuthenticated(false);
+    }
   };
 
   const updateUserProfile = async (updates: Partial<Pick<User, 'profilePhotoUrl'>>) => {
     if (user) {
+      try {
+        const result = await authService.updateProfile(updates);
+        if (result.success) {
+          const updatedUser = { ...user, ...updates };
+          setUser(updatedUser);
+        } else {
+          console.error('Failed to update profile:', result.error);
+          // For profile photo updates, we might still want to update locally
+          // even if server update fails (for offline scenarios)
+          const updatedUser = { ...user, ...updates };
+          setUser(updatedUser);
+          await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+      } catch (error) {
+        console.error('Profile update error:', error);
+        // Fallback to local update
         const updatedUser = { ...user, ...updates };
         setUser(updatedUser);
         await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+      }
     }
   };
 
