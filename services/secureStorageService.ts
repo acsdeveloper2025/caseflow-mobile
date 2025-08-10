@@ -26,7 +26,8 @@ export interface StorageStats {
   totalSize: number;
   encryptedSize: number;
   lastCleanup: string;
-}
+}-194 issue
+
 
 /**
  * Secure Local Storage Service for CaseFlow Mobile
