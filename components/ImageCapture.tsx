@@ -5,6 +5,7 @@ import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capaci
 import { Geolocation } from '@capacitor/geolocation';
 import { Capacitor } from '@capacitor/core';
 import { requestCameraPermissions, requestLocationPermissions } from '../utils/permissions';
+import { getAndroidCameraConfig, getAndroidCameraErrorMessage, checkAndroidCameraAvailability } from '../utils/androidCameraConfig';
 import CompactImageDisplay from './CompactImageDisplay';
 import { enhancedGeolocationService, EnhancedLocationData } from '../services/enhancedGeolocationService';
 import { googleMapsService } from '../services/googleMapsService';
@@ -110,19 +111,30 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
 
       console.log('✅ Camera permission granted, attempting to capture image...');
 
-      // Use native camera with detailed configuration
-      const cameraOptions = {
-        quality: 90,
-        allowEditing: false,
-        resultType: CameraResultType.DataUrl,
-        source: CameraSource.Camera,
-        direction: cameraDirection === 'front' ? CameraDirection.Front : CameraDirection.Rear,
-        presentationStyle: 'fullscreen' as any, // iOS specific
-        saveToGallery: false, // Explicitly prevent saving to gallery
-        correctOrientation: true,
-        width: 1024, // Limit image size for better performance
-        height: 1024
-      };
+      // Use platform-specific camera configuration
+      const platform = Capacitor.getPlatform();
+      let cameraOptions;
+
+      if (platform === 'android') {
+        // Use Android-optimized configuration
+        cameraOptions = getAndroidCameraConfig(cameraDirection, 90);
+        console.log('📱 Using Android camera configuration');
+      } else {
+        // iOS and other platforms configuration
+        cameraOptions = {
+          quality: 90,
+          allowEditing: false,
+          resultType: CameraResultType.DataUrl,
+          source: CameraSource.Camera,
+          direction: cameraDirection === 'front' ? CameraDirection.Front : CameraDirection.Rear,
+          presentationStyle: 'fullscreen' as any, // iOS specific
+          saveToGallery: false, // CRITICAL: Never save to gallery
+          correctOrientation: true,
+          width: 1024,
+          height: 1024
+        };
+        console.log('📱 Using iOS camera configuration');
+      }
 
       console.log('📷 Camera options:', cameraOptions);
 
@@ -165,16 +177,32 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
         setError('Image processing timed out. Please try again.');
       } else if (error.message?.includes('permission')) {
         console.error('🔐 Permission error during capture');
-        setError('Camera permission error. Please check your device settings.');
+        const platform = Capacitor.getPlatform();
+        if (platform === 'android') {
+          const androidError = getAndroidCameraErrorMessage(error);
+          setError(androidError || 'Camera permission required. Please enable camera access in Settings > Apps > CaseFlow Mobile > Permissions.');
+        } else {
+          setError('Camera permission error. Please check your device settings.');
+        }
       } else if (error.message?.includes('NSPhotoLibraryAddUsageDescription')) {
-        console.error('📷 Photo library permission missing');
+        console.error('📷 Photo library permission missing (iOS)');
         setError('Photo library permission required. Please update app permissions in Settings.');
       } else if (error.message?.includes('NSPhotoLibraryUsageDescription')) {
-        console.error('📷 Photo library access permission missing');
+        console.error('📷 Photo library access permission missing (iOS)');
         setError('Photo library access permission required. Please enable in Settings.');
+      } else if (error.message?.includes('CAMERA_PERMISSION_DENIED')) {
+        console.error('📷 Camera permission denied (Android)');
+        const androidError = getAndroidCameraErrorMessage(error);
+        setError(androidError || 'Camera permission denied. Please enable camera access in Settings > Apps > CaseFlow Mobile > Permissions.');
       } else if (error.code === 'CAMERA_UNAVAILABLE') {
         console.error('📷 Camera unavailable');
-        setError('Camera is not available on this device.');
+        const platform = Capacitor.getPlatform();
+        if (platform === 'android') {
+          const androidError = getAndroidCameraErrorMessage(error);
+          setError(androidError || 'Camera is not available on this device.');
+        } else {
+          setError('Camera is not available on this device.');
+        }
       } else {
         console.warn('🔄 Native camera failed, attempting web camera fallback...');
 
@@ -566,16 +594,16 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
 
       {/* Visual instruction note - only show when minimum requirement not met */}
       {minImages && images.length < minImages && (
-        <div className="mt-3 mb-2">
-          <p className="text-gray-400 text-sm flex items-center gap-2">
+        <div className="mt-3 mb-2 px-3 py-2 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+          <p className="text-gray-400 text-sm flex items-center gap-2 leading-relaxed">
             {componentType === 'selfie' ? (
               <>
-                <span>🤳</span>
+                <span className="text-base">🤳</span>
                 <span>Please take a minimum of {minImages} verification selfie{minImages > 1 ? 's' : ''}</span>
               </>
             ) : (
               <>
-                <span>📷</span>
+                <span className="text-base">📷</span>
                 <span>Please capture a minimum of {minImages} verification photo{minImages > 1 ? 's' : ''}</span>
               </>
             )}

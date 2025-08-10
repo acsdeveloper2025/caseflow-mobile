@@ -133,16 +133,16 @@ const CompactImageDisplay: React.FC<CompactImageDisplayProps> = ({
 
         {/* Visual instruction note - only show when minimum requirement not met */}
         {minImages && images.length < minImages && !isReadOnly && (
-          <div className="mb-3 mt-2">
-            <p className="text-gray-400 text-xs flex items-center gap-1.5">
+          <div className="mb-3 mt-2 px-2 py-1.5 bg-blue-900/20 border border-blue-500/30 rounded">
+            <p className="text-gray-400 text-xs flex items-center gap-1.5 leading-relaxed">
               {componentType === 'selfie' ? (
                 <>
-                  <span>🤳</span>
+                  <span className="text-sm">🤳</span>
                   <span>Please take a minimum of {minImages} verification selfie{minImages > 1 ? 's' : ''}</span>
                 </>
               ) : (
                 <>
-                  <span>📷</span>
+                  <span className="text-sm">📷</span>
                   <span>Please capture a minimum of {minImages} verification photo{minImages > 1 ? 's' : ''}</span>
                 </>
               )}

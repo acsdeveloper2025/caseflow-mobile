@@ -154,6 +154,11 @@ const PermissionStatus: React.FC<PermissionStatusProps> = ({
                 Open Settings
               </button>
             )}
+            {Capacitor.getPlatform() === 'android' && (
+              <div className="text-xs text-gray-400">
+                Go to: Settings → Apps → CaseFlow Mobile → Permissions
+              </div>
+            )}
             <button
               onClick={checkCurrentPermissions}
               className="px-3 py-2 text-xs font-semibold rounded border border-red-600 text-red-400 hover:bg-red-900/30 transition-colors"

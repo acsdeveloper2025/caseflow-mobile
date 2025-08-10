@@ -3,6 +3,7 @@ import { Geolocation } from '@capacitor/geolocation';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
+import { Filesystem } from '@capacitor/filesystem';
 
 export interface PermissionStatus {
   granted: boolean;
