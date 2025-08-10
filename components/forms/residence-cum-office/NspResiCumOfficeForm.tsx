@@ -8,6 +8,7 @@ import { FormField, SelectField, TextAreaField, NumberDropdownField } from '../.
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
+import PermissionStatus from '../../PermissionStatus';
 import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
 import { FORM_TYPES } from '../../../constants/formTypes';
 import {
@@ -291,7 +292,11 @@ const NspResiCumOfficeForm: React.FC<NspResiCumOfficeFormProps> = ({ caseData })
       
       <SelectField label="Final Status" id="finalStatus" name="finalStatus" value={report.finalStatus || ''} onChange={handleChange} disabled={isReadOnly}><option value="">Select...</option>{options.finalStatus}</SelectField>
       {report.finalStatus === FinalStatus.Hold && <FormField label="Reason for Hold" id="holdReason" name="holdReason" value={report.holdReason} onChange={handleChange} disabled={isReadOnly} />}
-      
+
+      {/* Permission Status Section */}
+      <PermissionStatus showOnlyDenied={true} />
+
+      {/* Image Capture Section */}
       <ImageCapture
         images={report.images}
         onImagesChange={handleImagesChange}

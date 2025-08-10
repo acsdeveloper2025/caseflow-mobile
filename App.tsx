@@ -11,6 +11,7 @@ import { googleMapsService } from './services/googleMapsService';
 import { validateEnvironmentConfig, getEnvironmentConfig } from './config/environment';
 import { dataCleanupService } from './services/dataCleanupService';
 import { backgroundTaskManager } from './services/backgroundTaskManager';
+import { initializeAppPermissions } from './utils/permissions';
 
 // Lazy load screens for better code splitting
 const NewLoginScreen = lazy(() => import('./screens/NewLoginScreen'));
@@ -30,6 +31,13 @@ const AppNavigator: React.FC = () => {
   useEffect(() => {
     const initializeServices = async () => {
       try {
+        console.log('🚀 Starting app initialization...');
+
+        // Initialize app permissions first (critical for iOS)
+        console.log('🔐 Initializing permissions...');
+        const permissions = await initializeAppPermissions();
+        console.log('🔐 Permission initialization complete:', permissions);
+
         // Validate environment configuration
         const config = getEnvironmentConfig();
         const isValid = validateEnvironmentConfig(config);

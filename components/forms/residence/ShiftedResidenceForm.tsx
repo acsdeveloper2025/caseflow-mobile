@@ -9,6 +9,7 @@ import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
+import PermissionStatus from '../../PermissionStatus';
 import ReadOnlyIndicator from '../../ReadOnlyIndicator';
 import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
 import { FORM_TYPES } from '../../../constants/formTypes';
@@ -371,7 +372,11 @@ const ShiftedResidenceForm: React.FC<ShiftedResidenceFormProps> = ({ caseData })
         )}
       </div>
 
-       <ImageCapture
+      {/* Permission Status Section */}
+      <PermissionStatus showOnlyDenied={true} />
+
+      {/* Image Capture Section */}
+      <ImageCapture
         images={report.images}
         onImagesChange={handleImagesChange}
         isReadOnly={isReadOnly}

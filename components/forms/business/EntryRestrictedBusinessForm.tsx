@@ -8,6 +8,7 @@ import { FormField, SelectField, TextAreaField, NumberDropdownField } from '../.
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
+import PermissionStatus from '../../PermissionStatus';
 import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
 import { FORM_TYPES } from '../../../constants/formTypes';
 import {
@@ -257,6 +258,10 @@ const EntryRestrictedBusinessForm: React.FC<EntryRestrictedBusinessFormProps> = 
         )}
       </div>
 
+      {/* Permission Status Section */}
+      <PermissionStatus showOnlyDenied={true} />
+
+      {/* Image Capture Section */}
       <ImageCapture
         images={report.images}
         onImagesChange={handleImagesChange}

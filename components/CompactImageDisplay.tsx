@@ -13,6 +13,7 @@ interface CompactImageDisplayProps {
   componentType: 'photo' | 'selfie';
   required: boolean;
   isReadOnly?: boolean;
+  minImages?: number;
   imageMetadata?: Record<string, {
     address?: string;
     enhancedAddress?: AddressComponents;
@@ -32,6 +33,7 @@ const CompactImageDisplay: React.FC<CompactImageDisplayProps> = ({
   componentType,
   required,
   isReadOnly = false,
+  minImages,
   imageMetadata = {}
 }) => {
   const [selectedImage, setSelectedImage] = useState<CapturedImage | null>(null);
@@ -128,6 +130,25 @@ const CompactImageDisplay: React.FC<CompactImageDisplayProps> = ({
             </button>
           )}
         </div>
+
+        {/* Visual instruction note - only show when minimum requirement not met */}
+        {minImages && images.length < minImages && !isReadOnly && (
+          <div className="mb-3 mt-2">
+            <p className="text-gray-400 text-xs flex items-center gap-1.5">
+              {componentType === 'selfie' ? (
+                <>
+                  <span>🤳</span>
+                  <span>Please take a minimum of {minImages} verification selfie{minImages > 1 ? 's' : ''}</span>
+                </>
+              ) : (
+                <>
+                  <span>📷</span>
+                  <span>Please capture a minimum of {minImages} verification photo{minImages > 1 ? 's' : ''}</span>
+                </>
+              )}
+            </p>
+          </div>
+        )}
 
         {/* Error Display */}
         {error && (

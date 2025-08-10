@@ -8,6 +8,7 @@ import { FormField, SelectField, TextAreaField } from '../../FormControls';
 import ConfirmationModal from '../../ConfirmationModal';
 import ImageCapture from '../../ImageCapture';
 import SelfieCapture from '../../SelfieCapture';
+import PermissionStatus from '../../PermissionStatus';
 import AutoSaveFormWrapper from '../../AutoSaveFormWrapper';
 import { FORM_TYPES } from '../../../constants/formTypes';
 import {
@@ -218,6 +219,10 @@ const UntraceableResiCumOfficeForm: React.FC<UntraceableResiCumOfficeFormProps> 
         )}
       </div>
 
+      {/* Permission Status Section */}
+      <PermissionStatus showOnlyDenied={true} />
+
+      {/* Image Capture Section */}
       <ImageCapture
         images={report.images}
         onImagesChange={handleImagesChange}

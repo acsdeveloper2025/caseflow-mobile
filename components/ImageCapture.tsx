@@ -3,7 +3,8 @@ import { CapturedImage } from '../types';
 import { CameraIcon, MapPinIcon, ClockIcon } from './Icons';
 import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capacitor/camera';
 import { Geolocation } from '@capacitor/geolocation';
-import { requestCameraPermissions, requestLocationPermissions, showPermissionDeniedAlert } from '../utils/permissions';
+import { Capacitor } from '@capacitor/core';
+import { requestCameraPermissions, requestLocationPermissions } from '../utils/permissions';
 import CompactImageDisplay from './CompactImageDisplay';
 import { enhancedGeolocationService, EnhancedLocationData } from '../services/enhancedGeolocationService';
 import { googleMapsService } from '../services/googleMapsService';
@@ -44,49 +45,148 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
   const [imageMetadata, setImageMetadata] = useState<Record<string, ImageMetadata>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Check if camera is available on the device
+  const checkCameraAvailability = async (): Promise<boolean> => {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        // On native platforms, assume camera is available if permissions can be checked
+        const permissions = await Camera.checkPermissions();
+        console.log('📷 Camera availability check:', permissions);
+        return true; // Camera exists if we can check permissions
+      } else {
+        // On web, check if MediaDevices API is available
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          console.log('📷 Web camera API available');
+          return true;
+        } else {
+          console.warn('📷 Web camera API not available');
+          return false;
+        }
+      }
+    } catch (error) {
+      console.error('❌ Camera availability check failed:', error);
+      return false;
+    }
+  };
+
   const handleTakePhoto = async () => {
+    console.log(`📷 Starting ${componentType} capture...`);
     setError(null);
     setIsLoading(true);
 
     try {
-      // Request camera permissions first
-      const cameraPermission = await requestCameraPermissions();
+      // Check camera availability first
+      const cameraAvailable = await checkCameraAvailability();
+      if (!cameraAvailable) {
+        console.warn('📷 Camera not available, using file input fallback');
+        if (fileInputRef.current) {
+          fileInputRef.current.click();
+          return;
+        } else {
+          setError('Camera is not available on this device.');
+          return;
+        }
+      }
+      // Request camera permissions first with enhanced options
+      console.log('🔐 Requesting camera permissions...');
+      const cameraPermission = await requestCameraPermissions({
+        showRationale: true,
+        fallbackToSettings: true,
+        context: componentType === 'selfie' ? 'take verification selfies' : 'capture verification photos'
+      });
+
+      console.log('🔐 Camera permission result:', cameraPermission);
 
       if (!cameraPermission.granted) {
         if (cameraPermission.denied) {
-          showPermissionDeniedAlert('Camera');
+          console.error('❌ Camera permission denied by user');
+          setError('Camera permission denied. Please enable camera access in device settings to continue.');
+        } else {
+          console.error('❌ Camera permission not granted');
+          setError('Camera permission is required to take photos');
         }
-        setError('Camera permission is required to take photos');
         return;
       }
 
-      // Use native camera if available, fallback to web
-      const image = await Camera.getPhoto({
+      console.log('✅ Camera permission granted, attempting to capture image...');
+
+      // Use native camera with detailed configuration
+      const cameraOptions = {
         quality: 90,
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Camera,
         direction: cameraDirection === 'front' ? CameraDirection.Front : CameraDirection.Rear,
+        presentationStyle: 'fullscreen' as any, // iOS specific
+        saveToGallery: false, // Explicitly prevent saving to gallery
+        correctOrientation: true,
+        width: 1024, // Limit image size for better performance
+        height: 1024
+      };
+
+      console.log('📷 Camera options:', cameraOptions);
+
+      const image = await Camera.getPhoto(cameraOptions);
+      console.log('📷 Camera.getPhoto result:', {
+        hasDataUrl: !!image.dataUrl,
+        format: image.format,
+        webPath: image.webPath,
+        dataUrlLength: image.dataUrl?.length
       });
 
       if (image.dataUrl) {
+        console.log('🔄 Processing captured image...');
         // Add timeout to prevent hanging
         await Promise.race([
           processImage(image.dataUrl),
           new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Image processing timeout')), 15000)
+            setTimeout(() => reject(new Error('Image processing timeout after 15 seconds')), 15000)
           )
         ]);
+        console.log('✅ Image processing completed successfully');
       } else {
-        throw new Error('Failed to capture image');
+        console.error('❌ No image data received from camera');
+        throw new Error('No image data received from camera');
       }
-    } catch (error) {
-      console.warn('Native camera failed, falling back to web camera:', error);
-      setError('Camera capture failed. Please try again.');
+    } catch (error: any) {
+      console.error('❌ Camera capture error:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack,
+        name: error.name
+      });
 
-      // Fallback to web camera
-      if (fileInputRef.current) {
-        fileInputRef.current.click();
+      // Handle specific error types
+      if (error.message?.includes('User cancelled')) {
+        console.log('ℹ️ User cancelled camera capture');
+        return; // Don't show error for user cancellation
+      } else if (error.message?.includes('timeout')) {
+        console.error('⏰ Image processing timeout');
+        setError('Image processing timed out. Please try again.');
+      } else if (error.message?.includes('permission')) {
+        console.error('🔐 Permission error during capture');
+        setError('Camera permission error. Please check your device settings.');
+      } else if (error.message?.includes('NSPhotoLibraryAddUsageDescription')) {
+        console.error('📷 Photo library permission missing');
+        setError('Photo library permission required. Please update app permissions in Settings.');
+      } else if (error.message?.includes('NSPhotoLibraryUsageDescription')) {
+        console.error('📷 Photo library access permission missing');
+        setError('Photo library access permission required. Please enable in Settings.');
+      } else if (error.code === 'CAMERA_UNAVAILABLE') {
+        console.error('📷 Camera unavailable');
+        setError('Camera is not available on this device.');
+      } else {
+        console.warn('🔄 Native camera failed, attempting web camera fallback...');
+
+        // Try web camera fallback
+        if (fileInputRef.current) {
+          console.log('📁 Triggering file input fallback...');
+          fileInputRef.current.click();
+          return; // Don't show error yet, let file input handle it
+        } else {
+          console.error('❌ No fallback available');
+          setError(`Camera capture failed: ${error.message || 'Unknown error'}. Please try again.`);
+        }
       }
     } finally {
       setIsLoading(false);
@@ -103,8 +203,12 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
       let accuracy: number | undefined;
 
       try {
-        // Request location permissions first
-        const locationPermission = await requestLocationPermissions();
+        // Request location permissions first with enhanced options
+        const locationPermission = await requestLocationPermissions({
+          showRationale: false, // Don't show rationale for location as it's optional
+          fallbackToSettings: false,
+          context: 'tag photos with GPS coordinates for verification'
+        });
 
         if (locationPermission.granted) {
           console.log('📍 Location permission granted, getting location...');
@@ -276,17 +380,40 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
 
 
   const handleFileCapture = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('📁 File input triggered for fallback capture...');
     const file = event.target.files?.[0];
-    if (!file) return;
+
+    if (!file) {
+      console.log('ℹ️ No file selected from file input');
+      setIsLoading(false);
+      return;
+    }
+
+    console.log('📁 File selected:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: file.lastModified
+    });
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      setError('Please capture a valid image.');
+      console.error('❌ Invalid file type:', file.type);
+      setError('Please select a valid image file.');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      console.error('❌ File too large:', file.size);
+      setError('Image file is too large (max 10MB). Please choose a smaller image.');
       return;
     }
 
     setIsLoading(true);
     setError(null);
+
+    console.log(`📁 Processing ${componentType} image from file input...`);
 
     try {
       const reader = new FileReader();
@@ -299,9 +426,10 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
           }
 
           await processImage(dataUrl);
+          console.log('✅ File input image processed successfully');
         } catch (processError) {
-          console.error('Image processing error:', processError);
-          setError('Failed to process captured image. Please try again.');
+          console.error('❌ File input image processing error:', processError);
+          setError('Failed to process the selected image. Please try again.');
         } finally {
           setIsLoading(false);
         }
@@ -391,6 +519,7 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
         componentType={componentType}
         required={required}
         isReadOnly={isReadOnly}
+        minImages={minImages}
         imageMetadata={Object.fromEntries(
           Object.entries(imageMetadata).map(([id, metadata]) => [
             id,
@@ -434,6 +563,25 @@ const ImageCapture: React.FC<ImageCaptureProps> = ({
         onChange={handleFileCapture}
         className="hidden"
       />
+
+      {/* Visual instruction note - only show when minimum requirement not met */}
+      {minImages && images.length < minImages && (
+        <div className="mt-3 mb-2">
+          <p className="text-gray-400 text-sm flex items-center gap-2">
+            {componentType === 'selfie' ? (
+              <>
+                <span>🤳</span>
+                <span>Please take a minimum of {minImages} verification selfie{minImages > 1 ? 's' : ''}</span>
+              </>
+            ) : (
+              <>
+                <span>📷</span>
+                <span>Please capture a minimum of {minImages} verification photo{minImages > 1 ? 's' : ''}</span>
+              </>
+            )}
+          </p>
+        </div>
+      )}
 
       {error && (
         <div className="p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-red-400 text-sm">
