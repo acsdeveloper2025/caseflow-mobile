@@ -11,6 +11,7 @@ const CompletedCasesScreen: React.FC = () => {
       emptyMessage="You have not completed any cases yet."
       tabKey="completed"
       searchPlaceholder="Search completed cases..."
+      showTimeline={true}
     />
   );
 };
