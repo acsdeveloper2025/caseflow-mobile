@@ -1,8 +1,52 @@
-import { Case, CaseStatus, VerificationType, Attachment } from '../types';
+import { Case, CaseStatus, VerificationType, Attachment, VerificationOutcome } from '../types';
 import AsyncStorage from '../polyfills/AsyncStorage';
 import { migrateCasesVerificationOutcomes, isDeprecatedOutcome } from '../utils/verificationOutcomeMigration';
+import { apiClient } from './apiClient';
+import { getEnvironmentConfig } from '../config/environment';
 
 const LOCAL_STORAGE_KEY = 'caseflow_cases';
+
+// API interfaces
+export interface CaseListParams {
+  page?: number;
+  limit?: number;
+  status?: CaseStatus;
+  verificationType?: VerificationType;
+  search?: string;
+  sortBy?: 'createdAt' | 'updatedAt' | 'priority';
+  sortOrder?: 'asc' | 'desc';
+  assignedToMe?: boolean;
+}
+
+export interface CaseUpdateRequest {
+  status?: CaseStatus;
+  priority?: number;
+  verificationOutcome?: string;
+  notes?: string;
+  assignedTo?: string;
+}
+
+export interface CaseListResponse {
+  cases: Case[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface CaseDetailResponse {
+  case: Case;
+  history: Array<{
+    id: string;
+    action: string;
+    timestamp: string;
+    userId: string;
+    userName: string;
+    details?: any;
+  }>;
+}
 
 // Helper function to generate realistic attachments
 const generateAttachments = (caseId: string, count: number): Attachment[] => {
@@ -314,19 +358,25 @@ const getInitialMockData = (): Case[] => [
   },
 ].map((c, index) => ({
   ...c,
-  order: index
+  order: index,
+  submissionStatus: c.submissionStatus as 'pending' | 'submitting' | 'success' | 'failed' | undefined,
+  verificationOutcome: c.verificationOutcome as VerificationOutcome | null
 }));
 
 class CaseService {
+  private config = getEnvironmentConfig();
+  private useOfflineMode = false;
+
   constructor() {
     this.initializeData();
+    this.useOfflineMode = this.config.features.enableOfflineMode;
   }
 
   private async initializeData() {
-      const existingData = await AsyncStorage.getItem(LOCAL_STORAGE_KEY);
-      if (!existingData) {
-          await AsyncStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(getInitialMockData()));
-      }
+    const existingData = await AsyncStorage.getItem(LOCAL_STORAGE_KEY);
+    if (!existingData) {
+      await AsyncStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(getInitialMockData()));
+    }
   }
 
   private async readFromStorage(): Promise<Case[]> {
@@ -338,9 +388,47 @@ class CaseService {
     await AsyncStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cases));
   }
 
-  async getCases(): Promise<Case[]> {
-    const cases = await this.readFromStorage();
+  async getCases(params: CaseListParams = {}): Promise<CaseListResponse> {
+    try {
+      // If offline mode is enabled or no network, use local data
+      if (this.useOfflineMode || !navigator.onLine) {
+        const localCases = await this.getLocalCases();
+        return this.filterAndPaginateLocalCases(localCases, params);
+      }
 
+      // Try to fetch from API
+      const queryParams = new URLSearchParams();
+      if (params.page) queryParams.append('page', params.page.toString());
+      if (params.limit) queryParams.append('limit', params.limit.toString());
+      if (params.status) queryParams.append('status', params.status);
+      if (params.verificationType) queryParams.append('verificationType', params.verificationType);
+      if (params.search) queryParams.append('search', params.search);
+      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params.assignedToMe) queryParams.append('assignedToMe', 'true');
+
+      const response = await apiClient.get<CaseListResponse>(`/cases?${queryParams.toString()}`);
+
+      if (response.success && response.data) {
+        // Cache the cases locally for offline access
+        await this.cacheApiCases(response.data.cases);
+        return response.data;
+      } else {
+        // Fallback to local data if API fails
+        console.warn('API request failed, falling back to local data:', response.error);
+        const localCases = await this.getLocalCases();
+        return this.filterAndPaginateLocalCases(localCases, params);
+      }
+    } catch (error) {
+      console.error('Error fetching cases:', error);
+      // Fallback to local data
+      const localCases = await this.getLocalCases();
+      return this.filterAndPaginateLocalCases(localCases, params);
+    }
+  }
+
+  private async getLocalCases(): Promise<Case[]> {
+    const cases = await this.readFromStorage();
     // Apply verification outcome migration for any deprecated outcomes
     const migratedCases = migrateCasesVerificationOutcomes(cases);
 
@@ -357,21 +445,177 @@ class CaseService {
     return migratedCases;
   }
 
+  private filterAndPaginateLocalCases(cases: Case[], params: CaseListParams): CaseListResponse {
+    let filteredCases = [...cases];
+
+    // Apply filters
+    if (params.status) {
+      filteredCases = filteredCases.filter(c => c.status === params.status);
+    }
+    if (params.verificationType) {
+      filteredCases = filteredCases.filter(c => c.verificationType === params.verificationType);
+    }
+    if (params.search) {
+      const searchLower = params.search.toLowerCase();
+      filteredCases = filteredCases.filter(c =>
+        c.title.toLowerCase().includes(searchLower) ||
+        c.customer.name.toLowerCase().includes(searchLower) ||
+        c.id.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply sorting
+    if (params.sortBy) {
+      filteredCases.sort((a, b) => {
+        const aValue = a[params.sortBy!];
+        const bValue = b[params.sortBy!];
+        const order = params.sortOrder === 'desc' ? -1 : 1;
+
+        if (aValue < bValue) return -1 * order;
+        if (aValue > bValue) return 1 * order;
+        return 0;
+      });
+    }
+
+    // Apply pagination
+    const page = params.page || 1;
+    const limit = params.limit || 20;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedCases = filteredCases.slice(startIndex, endIndex);
+
+    return {
+      cases: paginatedCases,
+      pagination: {
+        page,
+        limit,
+        total: filteredCases.length,
+        totalPages: Math.ceil(filteredCases.length / limit),
+      },
+    };
+  }
+
+  private async cacheApiCases(cases: Case[]): Promise<void> {
+    try {
+      // Merge with existing local cases, preferring API data
+      const localCases = await this.readFromStorage();
+      const mergedCases = [...cases];
+
+      // Add any local-only cases that aren't in the API response
+      localCases.forEach(localCase => {
+        if (!cases.find(apiCase => apiCase.id === localCase.id)) {
+          mergedCases.push(localCase);
+        }
+      });
+
+      await this.writeToStorage(mergedCases);
+    } catch (error) {
+      console.error('Error caching API cases:', error);
+    }
+  }
+
+  private async markForSync(caseId: string, action: 'create' | 'update' | 'delete', data?: any): Promise<void> {
+    try {
+      const syncQueue = await AsyncStorage.getItem('sync_queue') || '[]';
+      const queue = JSON.parse(syncQueue);
+
+      const syncItem = {
+        id: `${action}_${caseId}_${Date.now()}`,
+        caseId,
+        action,
+        data,
+        timestamp: new Date().toISOString(),
+        retryCount: 0,
+      };
+
+      queue.push(syncItem);
+      await AsyncStorage.setItem('sync_queue', JSON.stringify(queue));
+    } catch (error) {
+      console.error('Error marking for sync:', error);
+    }
+  }
+
   async getCase(id: string): Promise<Case | undefined> {
-    const cases = await this.readFromStorage();
-    return cases.find(c => c.id === id);
+    try {
+      // Try to fetch from API first
+      if (!this.useOfflineMode && navigator.onLine) {
+        const response = await apiClient.get<CaseDetailResponse>(`/cases/${id}`);
+
+        if (response.success && response.data) {
+          // Cache the case locally
+          await this.updateLocalCase(response.data.case);
+          return response.data.case;
+        }
+      }
+
+      // Fallback to local data
+      const cases = await this.readFromStorage();
+      return cases.find(c => c.id === id);
+    } catch (error) {
+      console.error('Error fetching case by ID:', error);
+      // Fallback to local data
+      const cases = await this.readFromStorage();
+      return cases.find(c => c.id === id);
+    }
+  }
+
+  private async updateLocalCase(updatedCase: Case): Promise<void> {
+    try {
+      const cases = await this.readFromStorage();
+      const index = cases.findIndex(c => c.id === updatedCase.id);
+
+      if (index >= 0) {
+        cases[index] = updatedCase;
+      } else {
+        cases.push(updatedCase);
+      }
+
+      await this.writeToStorage(cases);
+    } catch (error) {
+      console.error('Error updating local case:', error);
+    }
   }
 
   async updateCase(id: string, updates: Partial<Case>): Promise<Case> {
-    const cases = await this.readFromStorage();
-    const caseIndex = cases.findIndex(c => c.id === id);
-    if (caseIndex === -1) {
-      throw new Error('Case not found');
+    try {
+      // Prepare API update request
+      const apiUpdates: CaseUpdateRequest = {};
+      if (updates.status) apiUpdates.status = updates.status;
+      if (updates.priority) apiUpdates.priority = updates.priority;
+      if (updates.verificationOutcome) apiUpdates.verificationOutcome = updates.verificationOutcome.toString();
+      if (updates.notes) apiUpdates.notes = updates.notes;
+
+      // Try to update via API first
+      if (!this.useOfflineMode && navigator.onLine) {
+        const response = await apiClient.put<{ case: Case }>(`/cases/${id}`, apiUpdates);
+
+        if (response.success && response.data) {
+          // Update local cache
+          await this.updateLocalCase(response.data.case);
+          return response.data.case;
+        }
+      }
+
+      // Fallback to local update
+      const cases = await this.readFromStorage();
+      const caseIndex = cases.findIndex(c => c.id === id);
+      if (caseIndex === -1) {
+        throw new Error('Case not found');
+      }
+      const updatedCase = { ...cases[caseIndex], ...updates, updatedAt: new Date().toISOString() };
+      cases[caseIndex] = updatedCase;
+      await this.writeToStorage(cases);
+
+      // Mark for sync if offline
+      if (this.useOfflineMode || !navigator.onLine) {
+        await this.markForSync(id, 'update', updates);
+      }
+
+      return updatedCase;
+    } catch (error) {
+      console.error('Error updating case:', error);
+      throw error;
     }
-    const updatedCase = { ...cases[caseIndex], ...updates, updatedAt: new Date().toISOString() };
-    cases[caseIndex] = updatedCase;
-    await this.writeToStorage(cases);
-    return updatedCase;
   }
   
   async revokeCase(id: string, reason: string): Promise<void> {
@@ -381,17 +625,77 @@ class CaseService {
     await this.writeToStorage(updatedCases);
   }
 
-  async syncWithServer(): Promise<Case[]> {
-    console.log("Simulating sync with server...");
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network latency
+  async syncWithServer(): Promise<{ success: boolean; syncedCount: number; errors: string[] }> {
+    console.log("Starting sync with server...");
 
-    const localCases = await this.readFromStorage();
+    try {
+      if (!navigator.onLine) {
+        return { success: false, syncedCount: 0, errors: ['No internet connection'] };
+      }
 
-    // In a real app, this would fetch new/updated cases from a server
-    // and merge them with local data. For this demo, we'll just log.
+      const syncQueue = await AsyncStorage.getItem('sync_queue') || '[]';
+      const queue = JSON.parse(syncQueue);
 
-    console.log("Sync complete. No new data from server.");
-    return localCases;
+      if (queue.length === 0) {
+        return { success: true, syncedCount: 0, errors: [] };
+      }
+
+      let syncedCount = 0;
+      const errors: string[] = [];
+      const remainingQueue = [];
+
+      for (const item of queue) {
+        try {
+          let success = false;
+
+          switch (item.action) {
+            case 'update':
+              const updateResponse = await apiClient.put(`/cases/${item.caseId}`, item.data);
+              success = updateResponse.success;
+              break;
+            case 'create':
+              const createResponse = await apiClient.post('/cases', item.data);
+              success = createResponse.success;
+              break;
+            case 'delete':
+              const deleteResponse = await apiClient.delete(`/cases/${item.caseId}`);
+              success = deleteResponse.success;
+              break;
+          }
+
+          if (success) {
+            syncedCount++;
+          } else {
+            item.retryCount = (item.retryCount || 0) + 1;
+            if (item.retryCount < this.config.offline.syncRetryAttempts) {
+              remainingQueue.push(item);
+            } else {
+              errors.push(`Failed to sync ${item.action} for case ${item.caseId} after ${item.retryCount} attempts`);
+            }
+          }
+        } catch (error) {
+          item.retryCount = (item.retryCount || 0) + 1;
+          if (item.retryCount < this.config.offline.syncRetryAttempts) {
+            remainingQueue.push(item);
+          } else {
+            errors.push(`Error syncing ${item.action} for case ${item.caseId}: ${error}`);
+          }
+        }
+      }
+
+      // Update sync queue with remaining items
+      await AsyncStorage.setItem('sync_queue', JSON.stringify(remainingQueue));
+
+      // Refresh local data from server
+      if (syncedCount > 0) {
+        await this.getCases({ page: 1, limit: 50 }); // Refresh first page
+      }
+
+      return { success: errors.length === 0, syncedCount, errors };
+    } catch (error) {
+      console.error('Sync error:', error);
+      return { success: false, syncedCount: 0, errors: [error.toString()] };
+    }
   }
 
   async submitCase(id: string): Promise<{ success: boolean; error?: string }> {
@@ -404,23 +708,28 @@ class CaseService {
         lastSubmissionAttempt: new Date().toISOString()
       });
 
-      // Simulate network request with potential failure
-      await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          // Simulate 20% failure rate for testing
-          if (Math.random() < 0.2) {
-            reject(new Error('Network timeout - please check your connection and try again'));
-          } else {
-            resolve(true);
-          }
-        }, 2000); // Simulate network latency
+      // Get the case data to submit
+      const caseData = await this.getCase(id);
+      if (!caseData) {
+        throw new Error('Case not found');
+      }
+
+      // Submit to API
+      const response = await apiClient.post(`/cases/${id}/submit`, {
+        caseData,
+        timestamp: new Date().toISOString(),
       });
+
+      if (!response.success) {
+        throw new Error(response.error?.message || 'Submission failed');
+      }
 
       // Mark as successfully submitted
       await this.updateCase(id, {
         submissionStatus: 'success',
         submissionError: undefined,
-        isSaved: false // Clear saved status since it's now submitted
+        isSaved: false, // Clear saved status since it's now submitted
+        status: 'submitted' as CaseStatus,
       });
 
       console.log(`Case ${id} submitted successfully`);
@@ -434,6 +743,11 @@ class CaseService {
         submissionStatus: 'failed',
         submissionError: errorMessage
       });
+
+      // If offline, mark for sync
+      if (!navigator.onLine) {
+        await this.markForSync(id, 'update', { status: 'submitted' });
+      }
 
       console.error(`Case ${id} submission failed:`, errorMessage);
       return { success: false, error: errorMessage };
