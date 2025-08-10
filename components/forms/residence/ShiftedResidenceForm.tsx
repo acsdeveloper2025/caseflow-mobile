@@ -20,14 +20,6 @@ import {
   createFormDataChangeHandler,
   createDataRestoredHandler
 } from '../../../utils/imageAutoSaveHelpers';
-import {
-  createImageChangeHandler,
-  createSelfieImageChangeHandler,
-  createAutoSaveImagesChangeHandler,
-  combineImagesForAutoSave,
-  createFormDataChangeHandler,
-  createDataRestoredHandler
-} from '../../../utils/imageAutoSaveHelpers';
 
 interface ShiftedResidenceFormProps {
   caseData: Case;

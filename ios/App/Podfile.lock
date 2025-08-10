@@ -18,6 +18,8 @@ PODS:
     - IONGeolocationLib (~> 1.0)
   - CapacitorLocalNotifications (7.0.2):
     - Capacitor
+  - CapacitorPreferences (7.0.2):
+    - Capacitor
   - CapacitorPushNotifications (7.0.2):
     - Capacitor
   - CapacitorSplashScreen (7.0.2):
@@ -37,6 +39,7 @@ DEPENDENCIES:
   - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
   - "CapacitorGeolocation (from `../../node_modules/@capacitor/geolocation`)"
   - "CapacitorLocalNotifications (from `../../node_modules/@capacitor/local-notifications`)"
+  - "CapacitorPreferences (from `../../node_modules/@capacitor/preferences`)"
   - "CapacitorPushNotifications (from `../../node_modules/@capacitor/push-notifications`)"
   - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
@@ -65,6 +68,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/geolocation"
   CapacitorLocalNotifications:
     :path: "../../node_modules/@capacitor/local-notifications"
+  CapacitorPreferences:
+    :path: "../../node_modules/@capacitor/preferences"
   CapacitorPushNotifications:
     :path: "../../node_modules/@capacitor/push-notifications"
   CapacitorSplashScreen:
@@ -82,12 +87,13 @@ SPEC CHECKSUMS:
   CapacitorFilesystem: f9bd850c41e048180e5dc0cbb90f2033ede9d2cc
   CapacitorGeolocation: 32a1f849c38c72b5071de36a28ebc548ef3bb611
   CapacitorLocalNotifications: 665188ae8accd40806129073896fb2b39322d858
+  CapacitorPreferences: 65107ed7437d96ee72583df5763985e3c0ff2bc2
   CapacitorPushNotifications: 7c0659b349b149ee3936a682da31a9d269de9582
   CapacitorSplashScreen: 157947576b59d913792063a8d442a79e6d283ee5
   CapacitorStatusBar: e04d05e121d5a5979c29eb4249186a4e4a84cacb
   IONFilesystemLib: 89258b8e3e85465da93127d25d7ce37f977e8a6f
   IONGeolocationLib: 81f33f88d025846946de2cf63b0c7628e7c6bc9d
 
-PODFILE CHECKSUM: 344d71585ab4b1c68a026cc6405d2e998bada353
+PODFILE CHECKSUM: 7bc6aee94338f14a8a6ba9ecfcea19f8cfad62b2
 
 COCOAPODS: 1.16.2
