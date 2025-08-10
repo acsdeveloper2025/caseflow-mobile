@@ -1721,11 +1721,14 @@ export interface Case {
   };
   status: CaseStatus;
   isSaved: boolean;
-  createdAt: string;
-  updatedAt: string;
-  inProgressAt?: string;
-  savedAt?: string;
-  completedAt?: string;
+  createdAt: string; // Case Assignment Date/Time
+  updatedAt: string; // Last Update Date/Time
+  inProgressAt?: string; // In Progress Date/Time
+  savedAt?: string; // Save Date/Time
+  completedAt?: string; // Completion Date/Time
+  submissionStatus?: 'pending' | 'submitting' | 'success' | 'failed'; // Submission status for completed cases
+  submissionError?: string; // Error message if submission failed
+  lastSubmissionAttempt?: string; // Timestamp of last submission attempt
   bankName?: string;
   product?: string;
   trigger?: string;

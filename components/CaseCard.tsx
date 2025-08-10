@@ -6,6 +6,7 @@ import Spinner from './Spinner';
 import Modal from './Modal';
 import PriorityInput from './PriorityInput';
 import { useCaseAutoSaveStatus } from '../hooks/useCaseAutoSaveStatus';
+import CaseTimeline from './CaseTimeline';
 import PositiveResidenceForm from './forms/residence/PositiveResidenceForm';
 import ShiftedResidenceForm from './forms/residence/ShiftedResidenceForm';
 import NspResidenceForm from './forms/residence/NspResidenceForm';
@@ -91,11 +92,13 @@ const verificationOptionsMap: { [key in VerificationType]?: React.ReactElement[]
 };
 
 const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, isFirst, isLast }) => {
-  const { updateCaseStatus, toggleSaveCase, updateVerificationOutcome, revokeCase, reorderInProgressCase } = useCases();
+  const { updateCaseStatus, toggleSaveCase, updateVerificationOutcome, revokeCase, reorderInProgressCase, submitCase, resubmitCase } = useCases();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isRevokeModalOpen, setIsRevokeModalOpen] = useState(false);
   const [revokeReason, setRevokeReason] = useState<RevokeReason>(RevokeReason.NotMyArea);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionMessage, setSubmissionMessage] = useState<string | null>(null);
 
   // Check for auto-saved data for this case
   const { hasAutoSaveData } = useCaseAutoSaveStatus(caseData.id);
@@ -150,10 +153,66 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
     }
   };
 
-  const statusColor = {
-    [CaseStatus.Assigned]: 'border-l-4 border-blue-500',
-    [CaseStatus.InProgress]: 'border-l-4 border-yellow-500',
-    [CaseStatus.Completed]: 'border-l-4 border-green-500',
+  const handleSubmitCase = async () => {
+    setIsSubmitting(true);
+    setSubmissionMessage(null);
+
+    try {
+      const result = await submitCase(caseData.id);
+      if (result.success) {
+        setSubmissionMessage('Case submitted successfully!');
+        setTimeout(() => setSubmissionMessage(null), 3000);
+      } else {
+        setSubmissionMessage(result.error || 'Submission failed');
+      }
+    } catch (error) {
+      setSubmissionMessage('Submission failed - please try again');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResubmitCase = async () => {
+    setIsSubmitting(true);
+    setSubmissionMessage(null);
+
+    try {
+      const result = await resubmitCase(caseData.id);
+      if (result.success) {
+        setSubmissionMessage('Case resubmitted successfully!');
+        setTimeout(() => setSubmissionMessage(null), 3000);
+      } else {
+        setSubmissionMessage(result.error || 'Resubmission failed');
+      }
+    } catch (error) {
+      setSubmissionMessage('Resubmission failed - please try again');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getStatusColor = () => {
+    if (caseData.status === CaseStatus.Completed) {
+      switch (caseData.submissionStatus) {
+        case 'success':
+          return 'border-l-4 border-green-500 bg-green-900/20';
+        case 'failed':
+          return 'border-l-4 border-red-500 bg-red-900/20';
+        case 'submitting':
+          return 'border-l-4 border-yellow-500 bg-yellow-900/20';
+        case 'pending':
+        default:
+          return 'border-l-4 border-orange-500 bg-orange-900/20';
+      }
+    }
+
+    const statusColor = {
+      [CaseStatus.Assigned]: 'border-l-4 border-blue-500',
+      [CaseStatus.InProgress]: 'border-l-4 border-yellow-500',
+      [CaseStatus.Completed]: 'border-l-4 border-green-500',
+    };
+
+    return statusColor[caseData.status];
   };
   
   const verificationOutcomeOptions = useMemo(() => verificationOptionsMap[caseData.verificationType], [caseData.verificationType]);
@@ -365,7 +424,7 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
 
   return (
     <>
-    <div className={`bg-dark-card rounded-lg shadow-lg mb-4 mx-4 p-4 transition-all duration-300 ${statusColor[caseData.status]} ${hasAutoSaveData ? 'ring-2 ring-yellow-400 bg-yellow-900/20 border-yellow-400/50' : ''}`}>
+    <div className={`bg-dark-card rounded-lg shadow-lg mb-4 mx-4 p-4 transition-all duration-300 ${getStatusColor()} ${hasAutoSaveData ? 'ring-2 ring-yellow-400 bg-yellow-900/20 border-yellow-400/50' : ''}`}>
       <div
         className={`flex justify-between items-start ${(caseData.status !== CaseStatus.Assigned && caseData.status !== CaseStatus.Completed && !caseData.isSaved) ? 'cursor-pointer' : ''}`}
         onClick={(caseData.status !== CaseStatus.Assigned && caseData.status !== CaseStatus.Completed && !caseData.isSaved) ? () => setIsExpanded(!isExpanded) : undefined}
@@ -394,6 +453,88 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
           </div>
         </div>
       </div>
+
+      {/* Show comprehensive timeline for completed cases */}
+      {caseData.status === CaseStatus.Completed && (
+        <CaseTimeline caseData={caseData} compact={true} />
+      )}
+
+      {/* Submission status and re-submit functionality for completed cases */}
+      {caseData.status === CaseStatus.Completed && (
+        <div className="mt-3">
+          {/* Submission Status Indicator */}
+          {caseData.submissionStatus && (
+            <div className="mb-3">
+              {caseData.submissionStatus === 'success' && (
+                <div className="flex items-center gap-2 text-green-400 text-sm">
+                  <span>✅</span>
+                  <span>Successfully submitted to server</span>
+                </div>
+              )}
+
+              {caseData.submissionStatus === 'failed' && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-red-400 text-sm">
+                    <span>❌</span>
+                    <span>Submission failed</span>
+                  </div>
+                  {caseData.submissionError && (
+                    <div className="text-xs text-red-300 bg-red-900/20 p-2 rounded border border-red-500/30">
+                      {caseData.submissionError}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {caseData.submissionStatus === 'submitting' && (
+                <div className="flex items-center gap-2 text-yellow-400 text-sm">
+                  <span>⏳</span>
+                  <span>Submitting to server...</span>
+                </div>
+              )}
+
+              {caseData.submissionStatus === 'pending' && (
+                <div className="flex items-center gap-2 text-orange-400 text-sm">
+                  <span>⏸️</span>
+                  <span>Pending submission</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Submission Message */}
+          {submissionMessage && (
+            <div className={`mb-3 p-2 rounded text-sm ${
+              submissionMessage.includes('success')
+                ? 'bg-green-900/20 border border-green-500/30 text-green-400'
+                : 'bg-red-900/20 border border-red-500/30 text-red-400'
+            }`}>
+              {submissionMessage}
+            </div>
+          )}
+
+          {/* Re-submit Button */}
+          {(caseData.submissionStatus === 'failed' || caseData.submissionStatus === 'pending' || caseData.isSaved) && (
+            <button
+              onClick={caseData.submissionStatus === 'failed' ? handleResubmitCase : handleSubmitCase}
+              disabled={isSubmitting}
+              className="px-4 py-2 text-sm font-semibold rounded-md bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:opacity-50 text-white transition-colors flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  <span>{caseData.submissionStatus === 'failed' ? 'Resubmitting...' : 'Submitting...'}</span>
+                </>
+              ) : (
+                <>
+                  <span>🔄</span>
+                  <span>{caseData.submissionStatus === 'failed' ? 'Re-submit Case' : 'Submit Case'}</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      )}
 
       <div className={`transition-all duration-500 ease-in-out ${isExpanded ? 'max-h-[8000px] mt-4' : 'max-h-0 overflow-hidden'}`}>
           {isInProgress && verificationOutcomeOptions && (
@@ -503,14 +644,16 @@ const CaseCard: React.FC<CaseCardProps> = ({ caseData, isReorderable = false, is
 
             <div className="flex items-center gap-2">
               {caseData.isSaved && (
-                  <button 
-                      onClick={(e) => {
+                  <button
+                      onClick={async (e) => {
                           e.stopPropagation();
-                          updateCaseStatus(caseData.id, CaseStatus.Completed);
+                          // First mark as completed, then submit
+                          await updateCaseStatus(caseData.id, CaseStatus.Completed);
+                          // The submission will be handled by the re-submit button that appears for completed cases
                       }}
                       className="px-4 py-2 text-sm font-semibold rounded-md bg-green-600 hover:bg-green-500 text-white transition-colors"
                   >
-                      Submit Case
+                      Complete Case
                   </button>
               )}
 

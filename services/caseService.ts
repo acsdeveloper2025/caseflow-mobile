@@ -260,14 +260,65 @@ class CaseService {
   async syncWithServer(): Promise<Case[]> {
     console.log("Simulating sync with server...");
     await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network latency
-    
+
     const localCases = await this.readFromStorage();
 
     // In a real app, this would fetch new/updated cases from a server
     // and merge them with local data. For this demo, we'll just log.
-    
+
     console.log("Sync complete. No new data from server.");
     return localCases;
+  }
+
+  async submitCase(id: string): Promise<{ success: boolean; error?: string }> {
+    console.log(`Attempting to submit case ${id} to server...`);
+
+    try {
+      // Update case status to submitting
+      await this.updateCase(id, {
+        submissionStatus: 'submitting',
+        lastSubmissionAttempt: new Date().toISOString()
+      });
+
+      // Simulate network request with potential failure
+      await new Promise((resolve, reject) => {
+        setTimeout(() => {
+          // Simulate 20% failure rate for testing
+          if (Math.random() < 0.2) {
+            reject(new Error('Network timeout - please check your connection and try again'));
+          } else {
+            resolve(true);
+          }
+        }, 2000); // Simulate network latency
+      });
+
+      // Mark as successfully submitted
+      await this.updateCase(id, {
+        submissionStatus: 'success',
+        submissionError: undefined,
+        isSaved: false // Clear saved status since it's now submitted
+      });
+
+      console.log(`Case ${id} submitted successfully`);
+      return { success: true };
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+
+      // Mark as failed submission
+      await this.updateCase(id, {
+        submissionStatus: 'failed',
+        submissionError: errorMessage
+      });
+
+      console.error(`Case ${id} submission failed:`, errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  async resubmitCase(id: string): Promise<{ success: boolean; error?: string }> {
+    console.log(`Re-attempting to submit case ${id}...`);
+    return this.submitCase(id);
   }
 }
 
