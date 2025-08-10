@@ -29,3 +29,54 @@ dist-ssr
 CaseFlow-Mobile-*.apk
 android/app/build/outputs/
 android/app/release/
+
+# Security & API Keys
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+*.key
+*.pem
+*.p12
+*.keystore
+*.jks
+google-services.json
+GoogleService-Info.plist
+config.json
+secrets.json
+api-keys.json
+
+# Development & Debug Files
+*.log
+*.tmp
+*.temp
+.cache/
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Capacitor
+capacitor.config.json
+.capacitor/
+ios/App/App/capacitor.config.json
+android/app/src/main/assets/capacitor.config.json
+
+# Build artifacts
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
