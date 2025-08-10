@@ -22,4 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-CaseFlow-Mobile-v1.0.0-debug.apk
+
+# APK Files - Android build outputs
+*.apk
+*.aab
+CaseFlow-Mobile-*.apk
+android/app/build/outputs/
+android/app/release/
