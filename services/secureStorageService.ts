@@ -26,7 +26,7 @@ export interface StorageStats {
   totalSize: number;
   encryptedSize: number;
   lastCleanup: string;
-}-194 issue
+}
 
 
 /**
